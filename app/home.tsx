@@ -1,0 +1,147 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useState } from 'react';
+import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
+const Home = () => {
+  const [points, setPoints] = useState(0);
+  const [status, setStatus] = useState("Clock In");
+  const [isClockedIn, setIsClockedIn] = useState(false);
+
+  // Mock data for announcements
+  const announcements = [
+    { id: 1, title: 'Season 2 Begins!', body: 'New challenges and rewards are now live.', icon: 'trophy' },
+    { id: 2, title: 'Double Points Weekend', body: 'Earn 2x points on all morning routines.', icon: 'flash' }
+  ];
+
+  const handleClockIn = () => {
+    setStatus("Processing...");
+    setTimeout(() => {
+      setStatus("Clocked In!");
+      setIsClockedIn(true);
+      setPoints(prev => prev + 10);
+    }, 1200);
+  };
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+        
+        {/* Portal Card */}
+        <View style={styles.portalCard}>
+          <Text style={styles.portalHeadline}>Ready to start your day?</Text>
+          
+          <TouchableOpacity 
+            style={[styles.clockBtn, isClockedIn && styles.clockBtnSuccess]} 
+            onPress={handleClockIn}
+            disabled={isClockedIn}
+          >
+            <Ionicons name={isClockedIn ? "checkmark-circle" : "play"} size={24} color="white" />
+            <Text style={styles.btnText}>{status}</Text>
+          </TouchableOpacity>
+
+          <View style={styles.statusBadge}>
+            <Text style={styles.statusText}>
+              6/10 Players Left This Month!
+            </Text>
+          </View>
+        </View>
+
+        {/* Divider Section */}
+        <View style={styles.dividerContainer}>
+          <View style={styles.line} />
+          <Text style={styles.dividerText}>ANNOUNCEMENTS</Text>
+          <View style={styles.line} />
+        </View>
+
+        {/* Announcements List */}
+        {announcements.map((item) => (
+          <View key={item.id} style={styles.announcementCard}>
+            <View style={styles.announcementIconBg}>
+              <Ionicons name={item.icon as any} size={20} color="#1e40af" />
+            </View>
+            <View style={styles.announcementContent}>
+              <Text style={styles.announcementTitle}>{item.title}</Text>
+              <Text style={styles.announcementBody}>{item.body}</Text>
+            </View>
+          </View>
+        ))}
+
+      </ScrollView>
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: '#f8fafc' },
+  scrollContainer: { padding: 20, alignItems: 'center' },
+  
+  // Portal Card Styles
+  portalCard: { 
+    width: '100%', 
+    backgroundColor: '#1e40af', 
+    borderRadius: 24, 
+    padding: 30, 
+    alignItems: 'center',
+    marginTop: 20 
+  },
+  portalHeadline: { color: 'white', fontSize: 20, marginBottom: 30, fontWeight: '600' },
+  clockBtn: { 
+    backgroundColor: '#3b82f6', 
+    flexDirection: 'row', 
+    paddingVertical: 15, 
+    paddingHorizontal: 40, 
+    borderRadius: 50,
+    alignItems: 'center'
+  },
+  clockBtnSuccess: { backgroundColor: '#10b981' },
+  btnText: { color: 'white', fontWeight: 'bold', marginLeft: 10 },
+  statusBadge: { marginTop: 30, backgroundColor: 'rgba(255,255,255,0.1)', padding: 10, borderRadius: 10 },
+  statusText: { color: 'rgba(255,255,255,0.8)', fontSize: 12 },
+
+  // Divider Styles
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    marginTop: 40,
+    marginBottom: 20,
+  },
+  line: { flex: 1, height: 1, backgroundColor: '#e2e8f0' },
+  dividerText: { 
+    marginHorizontal: 15, 
+    color: '#94a3b8', 
+    fontWeight: 'bold', 
+    letterSpacing: 1.5, 
+    fontSize: 11 
+  },
+
+  // Announcement Card Styles
+  announcementCard: {
+    flexDirection: 'row',
+    backgroundColor: 'white',
+    width: '100%',
+    padding: 16,
+    borderRadius: 20,
+    marginBottom: 12,
+    alignItems: 'center',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+  },
+  announcementIconBg: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#eff6ff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 15,
+  },
+  announcementContent: { flex: 1 },
+  announcementTitle: { fontWeight: 'bold', color: '#1e293b', fontSize: 15 },
+  announcementBody: { color: '#64748b', fontSize: 13, marginTop: 2 },
+});
+
+export default Home;
