@@ -1,15 +1,18 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const Home = () => {
+  const router = useRouter();
+  
   const [points, setPoints] = useState(0);
   const [status, setStatus] = useState("Clock In");
   const [isClockedIn, setIsClockedIn] = useState(false);
 
   // Mock data for announcements
   const announcements = [
-    { id: 1, title: 'Season 2 Begins!', body: 'New challenges and rewards are now live.', icon: 'trophy' },
+    { id: 1, title: 'Season 1 Begins!', body: 'First set of challenges and rewards are now live.', icon: 'trophy' },
     { id: 2, title: 'Double Points Weekend', body: 'Earn 2x points on all morning routines.', icon: 'flash' }
   ];
 
@@ -17,8 +20,7 @@ const Home = () => {
     setStatus("Processing...");
     setTimeout(() => {
       setStatus("Clocked In!");
-      setIsClockedIn(true);
-      setPoints(prev => prev + 10);
+      router.push('/routine_active');
     }, 1200);
   };
 

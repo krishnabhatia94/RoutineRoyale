@@ -16,16 +16,25 @@ export default function Layout() {
             <Text style={styles.pointsLabel}>pts</Text>
           </View>
         ),
-        headerStyle: { backgroundColor: '#f8fafc', elevation: 0, shadowOpacity: 0 },
+        // --- ADDED SEPARATION BOX STYLING HERE ---
+        headerStyle: { 
+          backgroundColor: 'white', 
+          borderBottomWidth: 1,
+          borderBottomColor: '#e2e8f0', // Light gray border
+          elevation: 2, // Android shadow
+          shadowColor: '#000', // iOS shadow
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: 0.05,
+          shadowRadius: 2,
+        },
+        headerTitleAlign: 'left',
         tabBarActiveTintColor: '#3b82f6',
         tabBarInactiveTintColor: '#666',
         
-        // --- COMPREHENSIVE ANDROID NAVIGATION FIX ---
         tabBarStyle: {
           backgroundColor: 'white',
           borderTopWidth: 1,
           borderTopColor: '#e2e8f0',
-          // We add the system inset to a base height
           height: Platform.OS === 'android' ? 65 + insets.bottom : 88, 
           paddingBottom: Platform.OS === 'android' ? insets.bottom + 8 : insets.bottom,
           paddingTop: 10,
@@ -33,7 +42,6 @@ export default function Layout() {
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: '500',
-          // Small nudge for Android text
           marginBottom: Platform.OS === 'android' ? 5 : 0,
         }
       }}
@@ -84,25 +92,33 @@ export default function Layout() {
         }}
       />
       
-      {/* Keeps index hidden from the bar */}
       <Tabs.Screen name="index" options={{ href: null }} />
       <Tabs.Screen name="edit_avatar" options={{ href: null }} />
+      <Tabs.Screen 
+        name="routine_active" 
+        options={{ 
+          href: null, 
+          tabBarStyle: { display: 'none' }, 
+          headerShown: true
+        }} 
+      />
     </Tabs>
   );
 }
 
 const styles = StyleSheet.create({
-  headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#1e40af', marginLeft: 10 },
+  headerTitle: { fontSize: 18, fontWeight: '800', color: '#1e40af', marginLeft: Platform.OS === 'ios' ? 0 : 10 },
   pointsBadge: {
-    backgroundColor: 'white',
+    backgroundColor: '#f8fafc',
     paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 15,
+    paddingVertical: 6,
+    borderRadius: 20,
     marginRight: 15,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#e2e8f0',
+    flexDirection: 'row', // Aligns pts next to number for a cleaner look
   },
   pointsValue: { fontWeight: 'bold', fontSize: 14, color: '#1e40af' },
-  pointsLabel: { fontSize: 8, color: '#64748b', textTransform: 'uppercase' },
+  pointsLabel: { fontSize: 10, color: '#64748b', textTransform: 'uppercase', marginLeft: 4, fontWeight: '600' },
 });
