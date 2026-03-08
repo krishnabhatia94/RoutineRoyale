@@ -30,7 +30,6 @@ const Routine_Active = () => {
 
   const handleFinishRoutine = () => {
     setIsActive(false);
-    addPoints(50);
     router.replace('/post_routine');
   };
 

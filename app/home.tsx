@@ -1,8 +1,9 @@
+import { useTasks } from '@/context/TaskListContext';
 import { useTaskStatus } from '@/context/TaskStatusContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View, Alert } from 'react-native';
 
 const Home = () => {
   const router = useRouter();
@@ -12,6 +13,7 @@ const Home = () => {
   const [isClockedIn, setIsClockedIn] = useState(false);
 
   const { resetSession } = useTaskStatus();
+  const { tasks } = useTasks();
 
   // Mock data for announcements
   const announcements = [
@@ -20,6 +22,14 @@ const Home = () => {
   ];
 
   const handleClockIn = () => {
+    if (tasks.length === 0) {
+      Alert.alert(
+        "Routine Empty!", 
+        "You need to add at least one task to your routine before you can Clock In.",
+        [{ text: "Edit Task List", onPress: () => router.push('/task_list') }, { text: "OK" }]
+      );
+      return;
+    }
     // setStatus("Loading...");
     router.push('/matchmaking');
   };
@@ -33,7 +43,11 @@ const Home = () => {
           <Text style={styles.portalHeadline}>Ready to start your routine?</Text>
 
           <TouchableOpacity
-            style={[styles.clockBtn, isClockedIn && styles.clockBtnSuccess]}
+            style={[
+              styles.clockBtn, 
+              isClockedIn && styles.clockBtnSuccess,
+              tasks.length === 0 && { opacity: 0.6 }
+            ]}
             onPress={handleClockIn}
             disabled={isClockedIn}
           >

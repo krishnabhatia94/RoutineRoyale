@@ -58,23 +58,34 @@ const Task_List = () => {
   const hasChanges = initialTasks !== JSON.stringify(tasks);
 
   const handleSave = async () => {
-    if (hasChanges && !isSaving) {
-      setIsSaving(true);
-      try {
-        // Here you would typically await a server response:
-        // await api.saveTasks(tasks);
+    if (!hasChanges || isSaving) return;
 
-        // Simulating the async nature of a server call
-        await new Promise(resolve => setTimeout(resolve, 800));
+    // Validation: Check if any task name or length is empty
+    const invalidTask = tasks.find(t => t.name.trim() === "" || t.length.trim() === "");
+    if (invalidTask) {
+      Alert.alert(
+        "Incomplete Tasks", 
+        "Every task must have a name and a length. Please check your routine.",
+        [{ text: "OK", onPress: () => setExpandedId(invalidTask.id) }]
+      );
+      return;
+    }
 
-        setInitialTasks(JSON.stringify(tasks));
-        setExpandedId(null);
-      } catch (error) {
-        console.error("Failed to save tasks:", error);
-        Alert.alert("Save Error", "There was a problem saving your tasks.");
-      } finally {
-        setIsSaving(false);
-      }
+    setIsSaving(true);
+    try {
+      // Here you would typically await a server response:
+      // await api.saveTasks(tasks);
+
+      // Simulating the async nature of a server call
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      setInitialTasks(JSON.stringify(tasks));
+      setExpandedId(null);
+    } catch (error) {
+      console.error("Failed to save tasks:", error);
+      Alert.alert("Save Error", "There was a problem saving your tasks.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -100,6 +111,24 @@ const Task_List = () => {
       setExpandedId(null);
       router.back();
     }
+  };
+
+  const handleClearAll = () => {
+    Alert.alert(
+      "Clear Routine?",
+      "Are you sure you want to remove all tasks from this routine? This action cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Clear All", 
+          style: "destructive", 
+          onPress: () => {
+            setTasks([]);
+            setExpandedId(null);
+          } 
+        }
+      ]
+    );
   };
 
   const handleGenerateRoutine = async () => {
@@ -320,10 +349,17 @@ const Task_List = () => {
           </>
         }
         ListFooterComponent={
-          <TouchableOpacity style={styles.addBtn} onPress={addTask}>
-            <Ionicons name="add" size={24} color="#3b82f6" />
-            <Text style={styles.addBtnText}>Add New Task</Text>
-          </TouchableOpacity>
+          <>
+            <TouchableOpacity style={styles.addBtn} onPress={addTask}>
+              <Ionicons name="add" size={24} color="#3b82f6" />
+              <Text style={styles.addBtnText}>Add New Task</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={[styles.addBtn, styles.clearBtn]} onPress={handleClearAll}>
+              <Ionicons name="trash-outline" size={20} color="#ef4444" />
+              <Text style={[styles.addBtnText, styles.clearBtnText]}>Clear All Tasks In This Routine</Text>
+            </TouchableOpacity>
+          </>
         }
         showsVerticalScrollIndicator={false}
       />
@@ -533,6 +569,14 @@ const styles = StyleSheet.create({
     marginBottom: 30
   },
   addBtnText: { color: '#3b82f6', fontWeight: 'bold', marginLeft: 8, fontSize: 16 },
+  clearBtn: {
+    marginTop: 0,
+    borderColor: '#fee2e2',
+    backgroundColor: '#fffafa',
+  },
+  clearBtnText: {
+    color: '#ef4444',
+  },
 
   // AI Generation Styles
   aiContainer: {

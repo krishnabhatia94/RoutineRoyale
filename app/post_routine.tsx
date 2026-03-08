@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePoints } from '../context/PointsContext'; // Import Points
@@ -10,7 +10,7 @@ const Post_Routine = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { elapsedSeconds, formatTime } = useTaskStatus();
-  const { lastPointsGained } = usePoints();
+  const { lastPointsGained, addPoints } = usePoints();
 
   // Generate randomized competitors once per mount
   const leaderboard = React.useMemo(() => {
@@ -46,6 +46,17 @@ const Post_Routine = () => {
   }, [elapsedSeconds]);
 
   const userRank = leaderboard.findIndex(p => p.isUser) + 1;
+
+  // Award points based on placement exactly once
+  const pointsAwarded = useRef(false);
+  useEffect(() => {
+    if (!pointsAwarded.current && userRank > 0) {
+      // Formula: ((11 - place) + 2) * 2
+      const pointsGained = ((11 - userRank) + 2) * 2;
+      addPoints(pointsGained);
+      pointsAwarded.current = true;
+    }
+  }, [userRank, addPoints]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
