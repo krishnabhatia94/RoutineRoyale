@@ -1,67 +1,83 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useRef } from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { usePoints } from '../context/PointsContext';
-import { useProfile } from '../context/ProfileContext';
+import { useProfile, MOCK_NAMES, MOCK_ICONS, getDeterministicIndex, getDeterministicVariance, parseLengthToSeconds, getCompetitorFromDB } from '../context/ProfileContext';
 import { useTaskStatus } from '../context/TaskStatusContext';
+import { useTasks } from '../context/TaskListContext';
 
 const Post_Routine = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { elapsedSeconds, formatTime } = useTaskStatus();
-  const { lastPointsGained, addPoints } = usePoints();
-  const { activeQuest } = useProfile();
+  const { elapsedSeconds, formatTime, completedTaskIds, isActive } = useTaskStatus();
+  const { lastPointsGained, addPoints, activeQuest, currentBracket, eliminateFromBracket, setBracket } = useProfile();
+  const { tasks } = useTasks();
 
-  // Generate randomized competitors once per mount
+  const parTime = React.useMemo(() => {
+    return tasks.reduce((acc, task) => acc + parseLengthToSeconds(task.length), 0);
+  }, [tasks]);
+
   const leaderboard = React.useMemo(() => {
-    const competitors = [
-      { id: 1, name: 'Alex', icon: 'flash' },
-      { id: 2, name: 'Jordan', icon: 'barbell' },
-      { id: 3, name: 'Taylor', icon: 'water' },
-      { id: 4, name: 'Casey', icon: 'body' },
-      { id: 5, name: 'Morgan', icon: 'cafe' },
-      { id: 6, name: 'Riley', icon: 'leaf' },
-      { id: 7, name: 'Jamie', icon: 'bicycle' },
-      { id: 8, name: 'Skylar', icon: 'walk' },
-      { id: 9, name: 'Charlie', icon: 'heart' },
-    ].map(c => {
-      // +/- 1.8 minutes (108 seconds)
-      const variance = (Math.random() * 216) - 108;
-      let calculatedTime = Math.floor(elapsedSeconds + variance);
-      
-      // If time hits 0 or less, re-roll between 1s and user's time
-      if (calculatedTime <= 0) {
-        calculatedTime = Math.floor(Math.random() * Math.max(1, elapsedSeconds)) + 1;
-      }
+    // Return empty if we don't have enough data to generate yet
+    if (!isActive && elapsedSeconds > 0) {
+      // Use currentBracket from context
+      const competitors = currentBracket.map((id) => {
+        const competitor = getCompetitorFromDB(id);
+        
+        // Deterministic variance based on ID - +/- 108 seconds centered around user
+        const variance = (getDeterministicVariance(id) / 0.15) * 108;
+        let calculatedTime = Math.floor(elapsedSeconds + variance);
+        
+        if (calculatedTime <= 0) {
+          calculatedTime = Math.floor(Math.random() * Math.max(1, elapsedSeconds)) + 1;
+        }
 
-      return {
-        ...c,
-        time: calculatedTime,
-        isUser: false
-      };
-    });
+        return { 
+          id, 
+          name: competitor.name, 
+          icon: competitor.icon, 
+          time: calculatedTime, 
+          isUser: false 
+        };
+      });
 
-    const user = { id: 0, name: 'You', icon: 'person', time: elapsedSeconds, isUser: true };
-    return [...competitors, user].sort((a, b) => a.time - b.time);
-  }, [elapsedSeconds]);
+      const user = { id: 'user-0', name: 'You', icon: 'person', time: elapsedSeconds, isUser: true };
+      return [...competitors, user].sort((a, b) => a.time - b.time);
+    }
+    
+    // Fallback if routine hasn't finished
+    return [{ id: 'user-0', name: 'You', icon: 'person', time: elapsedSeconds, isUser: true }];
+  }, [elapsedSeconds, isActive, currentBracket, parTime]);
 
   const userRank = leaderboard.findIndex(p => p.isUser) + 1;
 
-  // Award points based on placement exactly once
+  // Award points based on placement exactly once per session
   const pointsAwarded = useRef(false);
+
+  // Reset award flag if user starts a new session (detected via 0 elapsed time)
   useEffect(() => {
-    if (!pointsAwarded.current && userRank > 0) {
-      // Formula: ((11 - place) + 2) * 2
-      const placementPoints = ((11 - userRank) + 2) * 2;
-      const questPoints = activeQuest ? activeQuest.points : 0;
+    if (elapsedSeconds === 0) {
+      pointsAwarded.current = false;
+    }
+  }, [elapsedSeconds]);
+
+  const placementPoints = ((11 - userRank) + 2) * 2;
+  const questCompleted = activeQuest && completedTaskIds.includes(-activeQuest.id);
+  const questPoints = questCompleted ? activeQuest.points : 0;
+
+  useEffect(() => {
+    // ONLY award points if:
+    // 1. Not already awarded
+    // 2. We have a rank (leaderboard loaded)
+    // 3. The routine is FINISHED (isActive is false)
+    // 4. We actually did something (elapsedSeconds > 0)
+    if (!pointsAwarded.current && userRank > 0 && !isActive && elapsedSeconds > 0) {
       const totalGained = placementPoints + questPoints;
-      
       addPoints(totalGained);
       pointsAwarded.current = true;
     }
-  }, [userRank, addPoints]);
+  }, [userRank, isActive, elapsedSeconds, placementPoints, questPoints, addPoints]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -91,33 +107,66 @@ const Post_Routine = () => {
               <Text style={styles.statText}>Current Streak: 5 Days</Text>
             </View>
 
-            {/* NEW Points Gained Row */}
+            {/* Stats Card Improvements */}
             <View style={[styles.statRow, styles.statRowBorder]}>
-              <Ionicons name="star-outline" size={24} color="#8b5cf6" />
-              <Text style={styles.statText}>Points Gained: +{lastPointsGained} PTS</Text>
+              <Ionicons name="medal-outline" size={24} color="#3b82f6" />
+              <Text style={styles.statText}>Placement Reward: +{placementPoints} PTS</Text>
             </View>
 
-            {/* NEW Quest Points Row */}
             {activeQuest && (
               <View style={[styles.statRow, styles.statRowBorder]}>
-                <Ionicons name="gift-outline" size={24} color="#f59e0b" />
-                <Text style={styles.statText}>Points Gained From Quest: +{activeQuest.points} PTS</Text>
+                <Ionicons 
+                  name={questCompleted ? "gift" : "gift-outline"} 
+                  size={24} 
+                  color={questCompleted ? "#f59e0b" : "#94a3b8"} 
+                />
+                <View style={{ flex: 1 }}>
+                  <Text style={[
+                    styles.statText, 
+                    !questCompleted && { color: '#94a3b8' }
+                  ]}>
+                    {questCompleted 
+                      ? `Quest Reward: +${activeQuest.points} PTS` 
+                      : "Quest Not Completed"}
+                  </Text>
+                  {questCompleted && <Text style={styles.statSubtext}>Quest: {activeQuest.title}</Text>}
+                </View>
               </View>
             )}
+
+            <View style={[styles.statRow, styles.statRowBorder, styles.totalRow]}>
+              <Ionicons name="flash" size={24} color="#8b5cf6" />
+              <Text style={styles.totalPointsText}>Total Gained: +{placementPoints + questPoints} PTS</Text>
+            </View>
           </View>
 
           {/* Leaderboard Summary */}
           <View style={styles.leaderboardSection}>
             <Text style={styles.sectionTitle}>LEADERBOARD SUMMARY</Text>
             <View style={styles.leaderboardCard}>
-              {leaderboard.map((player, index) => (
-                <View key={player.id} style={[styles.rankRow, player.isUser && styles.userRankRow]}>
-                  <Text style={styles.rankNumber}>{index + 1}</Text>
-                  <Ionicons name={player.icon as any} size={16} color={player.isUser ? "#3b82f6" : "#64748b"} style={{ marginHorizontal: 10 }} />
-                  <Text style={[styles.rankName, player.isUser && styles.userRankName]}>{player.name}</Text>
-                  <Text style={styles.rankTime}>{formatTime(player.time)}</Text>
-                </View>
-              ))}
+              {leaderboard.map((player, index) => {
+                const isLast = index === leaderboard.length - 1;
+                // ONLY strike out if:
+                // 1. It's the last row
+                // 2. There's more than one person (user isn't the only survivor)
+                // 3. The person being crossed out is NOT the user
+                const shouldStrike = isLast && leaderboard.length > 1 && !player.isUser;
+                
+                return (
+                  <View key={player.id} style={[styles.rankRow, player.isUser && styles.userRankRow]}>
+                    <Text style={styles.rankNumber}>{index + 1}</Text>
+                    <Ionicons name={player.icon as any} size={16} color={player.isUser ? "#3b82f6" : "#64748b"} style={{ marginHorizontal: 10 }} />
+                    <Text style={[
+                      styles.rankName, 
+                      player.isUser && styles.userRankName,
+                      shouldStrike && styles.eliminatedPlayer
+                    ]}>
+                      {player.name}
+                    </Text>
+                    <Text style={[styles.rankTime, shouldStrike && styles.eliminatedPlayer]}>{formatTime(player.time)}</Text>
+                  </View>
+                );
+              })}
             </View>
           </View>
 
@@ -125,7 +174,30 @@ const Post_Routine = () => {
           <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 20) }]}>
             <TouchableOpacity
               style={styles.homeBtn}
-              onPress={() => router.replace('/home')}
+              onPress={() => {
+                const lastPlayer = leaderboard[leaderboard.length - 1];
+                
+                if (lastPlayer.isUser && leaderboard.length > 1) {
+                  // User lost the Royale
+                  Alert.alert(
+                    "Royale Over",
+                    "You Lost This Royale!",
+                    [{ 
+                      text: "Try Again", 
+                      onPress: () => {
+                        setBracket([]);
+                        router.replace('/home');
+                      }
+                    }]
+                  );
+                } else {
+                  // Eliminate rival if user wasn't last OR if user was only one left
+                  if (!lastPlayer.isUser) {
+                    eliminateFromBracket(lastPlayer.id);
+                  }
+                  router.replace('/home');
+                }
+              }}
             >
               <Text style={styles.homeBtnText}>Back to Home</Text>
             </TouchableOpacity>
@@ -155,6 +227,9 @@ const styles = StyleSheet.create({
   statRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 15 },
   statRowBorder: { borderTopWidth: 1, borderTopColor: '#f1f5f9' },
   statText: { marginLeft: 15, fontSize: 16, color: '#1e293b', fontWeight: 'bold' },
+  statSubtext: { marginLeft: 15, fontSize: 12, color: '#64748b', fontWeight: '500' },
+  totalRow: { backgroundColor: '#f5f3ff', marginTop: 10, borderRadius: 12, borderTopWidth: 0, paddingHorizontal: 15 },
+  totalPointsText: { marginLeft: 15, fontSize: 18, color: '#7c3aed', fontWeight: '900' },
 
   footer: { marginTop: 30 },
   homeBtn: {
@@ -171,6 +246,7 @@ const styles = StyleSheet.create({
   rankName: { flex: 1, fontSize: 15, color: '#1e293b', fontWeight: '600' },
   userRankName: { color: '#3b82f6', fontWeight: 'bold' },
   rankTime: { fontSize: 14, color: '#64748b', fontWeight: '500' },
+  eliminatedPlayer: { textDecorationLine: 'line-through', color: '#94a3b8' },
   rankDivider: { height: 1, backgroundColor: '#f1f5f9', marginVertical: 5, marginHorizontal: 10 },
 });
 

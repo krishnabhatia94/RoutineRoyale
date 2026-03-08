@@ -2,14 +2,22 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { Alert, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { usePoints } from '../context/PointsContext'; // Import points context
 
 import { useProfile } from '../context/ProfileContext';
 
 const Profile = () => {
   const router = useRouter();
-  const { totalPoints, addPoints } = usePoints();
-  const { name, username, dob, userId, activeQuest } = useProfile();
+  const { 
+    name, 
+    username, 
+    dob, 
+    userId, 
+    activeQuest, 
+    totalPoints,
+    addPoints,
+    isDarkMode,
+    toggleDarkMode
+  } = useProfile();
 
   const handleResetPoints = () => {
     Alert.alert(
@@ -33,6 +41,32 @@ const Profile = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      {/* Top Left Theme Toggle - Now outside ScrollView for stable layout */}
+      <View style={styles.togglePositioner}>
+        <TouchableOpacity 
+          style={styles.verticalToggle} 
+          onPress={toggleDarkMode}
+          activeOpacity={0.8}
+        >
+          <View style={styles.toggleTrack}>
+            {/* The Knob */}
+            <View style={[styles.toggleKnob, isDarkMode ? styles.knobDown : styles.knobUp]}>
+              <Ionicons 
+                name={isDarkMode ? "moon" : "sunny"} 
+                size={14} 
+                color={isDarkMode ? "#3b82f6" : "#f59e0b"} 
+              />
+            </View>
+            
+            {/* Empty track space for icons */}
+            <View style={styles.trackIconSpace}>
+              <Ionicons name="sunny" size={10} color={isDarkMode ? "#94a3b8" : "transparent"} />
+              <Ionicons name="moon" size={10} color={isDarkMode ? "transparent" : "#94a3b8"} />
+            </View>
+          </View>
+        </TouchableOpacity>
+      </View>
+
       <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         
         {/* Avatar Section */}
@@ -182,6 +216,58 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logoutBtnText: { color: '#ef4444', fontWeight: 'bold', fontSize: 16 },
+
+  // Theme Toggle Styles
+  togglePositioner: {
+    position: 'absolute',
+    top: 50, // Moved down slightly to avoid notch/header
+    left: 20,
+    zIndex: 9991, 
+  },
+  verticalToggle: {
+    width: 36,
+    height: 64,
+    backgroundColor: '#f1f5f9',
+    borderRadius: 20,
+    padding: 2,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  toggleTrack: {
+    flex: 1,
+    width: '100%',
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  toggleKnob: {
+    position: 'absolute',
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'white',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+  },
+  knobUp: { top: 2 },
+  knobDown: { bottom: 2 },
+  trackIconSpace: {
+    flex: 1,
+    width: '100%',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
 });
 
 export default Profile;

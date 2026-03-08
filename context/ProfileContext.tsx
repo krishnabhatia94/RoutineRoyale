@@ -1,4 +1,5 @@
 import React, { createContext, ReactNode, useContext, useState } from 'react';
+import USER_DB from '../constants/userDB.json';
 
 export interface Quest {
   id: number;
@@ -9,17 +10,87 @@ export interface Quest {
   length: string;
 }
 
+// Mock names and icons for deterministic mapping
+export const MOCK_NAMES = ['Alex', 'Jordan', 'Taylor', 'Casey', 'Morgan', 'Riley', 'Jamie', 'Skylar', 'Charlie', 'Quinn', 'Parker', 'Rowan'];
+export const MOCK_ICONS = ['flash', 'barbell', 'water', 'body', 'cafe', 'leaf', 'bicycle', 'walk', 'heart', 'star', 'trophy', 'medal'];
+
+// Helper to get deterministic index from string ID
+export const getDeterministicIndex = (id: string, arrayLength: number) => {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = id.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return Math.abs(hash) % arrayLength;
+};
+
+// Deterministic variance based on ID string
+// Returns a value between -0.15 and +0.15
+export const getDeterministicVariance = (id: string) => {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = id.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const val = (Math.abs(hash) % 10000) / 10000;
+  return (val * 0.3) - 0.15;
+};
+
+export const parseLengthToSeconds = (lengthStr: string) => {
+  const num = parseInt(lengthStr.replace(/[^0-9]/g, '')) || 0;
+  const lower = lengthStr.toLowerCase();
+  if (lower.includes('hour') || lower.includes('hr')) return num * 3600;
+  if (lower.includes('second') || lower.includes('sec')) return num;
+  return num * 60; // default to minutes
+};
+
+export const formatSeconds = (seconds: number) => {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+
+  if (h > 0) return `${h}h ${m}m`;
+  if (m > 0) return `${m}m ${s}s`;
+  return `${s}s`;
+};
+
+export const getCompetitorFromDB = (id: string) => {
+  const user = USER_DB.find(u => u.id === id);
+  if (user) return user;
+  
+  // Fallback for random/old IDs using deterministic mapping
+  const nameIndex = getDeterministicIndex(id, MOCK_NAMES.length);
+  const iconIndex = getDeterministicIndex(id, MOCK_ICONS.length);
+  return {
+    id,
+    name: MOCK_NAMES[nameIndex],
+    icon: MOCK_ICONS[iconIndex]
+  };
+};
+
+export const getRandomCompetitors = (count: number) => {
+  const shuffled = [...USER_DB].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, count).map(u => u.id);
+};
+
 interface ProfileContextType {
   name: string;
   username: string;
   dob: string;
   userId: string;
   activeQuest: Quest | null;
+  totalPoints: number;
+  lastPointsGained: number;
+  currentBracket: string[];
   setName: (name: string) => void;
   setUsername: (username: string) => void;
   setDob: (dob: string) => void;
   setUserId: (id: string) => void;
   setActiveQuest: (quest: Quest | null) => void;
+  addPoints: (amount: number) => void;
+  setTotalPoints: (amount: number) => void;
+  setBracket: (ids: string[]) => void;
+  eliminateFromBracket: (id: string) => void;
+  isDarkMode: boolean;
+  toggleDarkMode: () => void;
 }
 
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
@@ -30,6 +101,25 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
   const [dob, setDob] = useState("1999-01-01");
   const [userId, setUserId] = useState("24681012");
   const [activeQuest, setActiveQuest] = useState<Quest | null>(null);
+  const [totalPoints, setTotalPoints] = useState(0);
+  const [lastPointsGained, setLastPointsGained] = useState(0);
+  const [currentBracket, setCurrentBracket] = useState<string[]>([]);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  const toggleDarkMode = () => setIsDarkMode(prev => !prev);
+
+  const addPoints = (amount: number) => {
+    setLastPointsGained(amount);
+    setTotalPoints(prev => prev + amount);
+  };
+
+  const setBracket = (ids: string[]) => {
+    setCurrentBracket(ids);
+  };
+
+  const eliminateFromBracket = (id: string) => {
+    setCurrentBracket(prev => prev.filter(compId => compId !== id));
+  };
 
   return (
     <ProfileContext.Provider 
@@ -39,11 +129,20 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
         dob, 
         userId, 
         activeQuest,
+        totalPoints,
+        lastPointsGained,
         setName,
         setUsername,
         setDob,
         setUserId,
-        setActiveQuest
+        setActiveQuest,
+        addPoints,
+        setTotalPoints,
+        currentBracket,
+        setBracket,
+        eliminateFromBracket,
+        isDarkMode,
+        toggleDarkMode
       }}
     >
       {children}

@@ -4,16 +4,19 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useProfile } from '../context/ProfileContext';
 
 const Home = () => {
   const router = useRouter();
 
-  const [points, setPoints] = useState(0);
-  const [status, setStatus] = useState("Clock In");
+  const [status, setStatus] = useState("View Current Royale");
   const [isClockedIn, setIsClockedIn] = useState(false);
 
   const { resetSession } = useTaskStatus();
   const { tasks } = useTasks();
+  const { currentBracket, totalPoints } = useProfile();
+
+  const playersLeft = currentBracket.length === 0 ? 10 : currentBracket.length + 1;
 
   // Mock data for announcements
   const announcements = [
@@ -24,7 +27,7 @@ const Home = () => {
     if (tasks.length === 0) {
       Alert.alert(
         "Routine Empty!",
-        "You need to add at least one task to your routine before you can Clock In.",
+        "You need to add at least one task to your routine before you can begin a bracket.",
         [{ text: "Edit Task List", onPress: () => router.push('/task_list') }, { text: "OK" }]
       );
       return;
@@ -56,7 +59,7 @@ const Home = () => {
 
           <View style={styles.statusBadge}>
             <Text style={styles.statusText}>
-              10/10 Players Left This Month!
+              {playersLeft}/10 Players Left This Royale!
             </Text>
           </View>
         </View>

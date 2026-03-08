@@ -32,6 +32,7 @@ const Task_List = () => {
   const [aiPrompt, setAiPrompt] = useState("");
   const [isAiModalVisible, setIsAiModalVisible] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isMagicFilling, setIsMagicFilling] = useState<number | null>(null);
 
   const { tasks, addTask, updateTask, deleteTask, setTasks } = useTasks();
   const { activeQuest, setActiveQuest } = useProfile();
@@ -44,8 +45,8 @@ const Task_List = () => {
       id: -activeQuest.id, // Use negative ID to avoid collision
       isQuest: true,
       name: `QUEST: ${activeQuest.title}`,
-      length: (activeQuest.length && activeQuest.length !== 'N/A') 
-        ? activeQuest.length 
+      length: (activeQuest.length && activeQuest.length !== 'N/A')
+        ? activeQuest.length
         : `+${activeQuest.points} pts`,
       description: activeQuest.description,
       icon: activeQuest.icon,
@@ -83,7 +84,7 @@ const Task_List = () => {
     const invalidTask = tasks.find(t => t.name.trim() === "" || t.length.trim() === "");
     if (invalidTask) {
       Alert.alert(
-        "Incomplete Tasks", 
+        "Incomplete Tasks",
         "Every task must have a name and a length. Please check your routine.",
         [{ text: "OK", onPress: () => setExpandedId(invalidTask.id) }]
       );
@@ -138,13 +139,13 @@ const Task_List = () => {
       "Are you sure you want to remove all tasks from this routine? This action cannot be undone.",
       [
         { text: "Cancel", style: "cancel" },
-        { 
-          text: "Clear All", 
-          style: "destructive", 
+        {
+          text: "Clear All",
+          style: "destructive",
           onPress: () => {
             setTasks([]);
             setExpandedId(null);
-          } 
+          }
         }
       ]
     );
@@ -192,6 +193,54 @@ const Task_List = () => {
       Alert.alert("Generation Failed", "Could not generate routine. Please check your prompt or API key.");
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleMagicFill = async (item: any) => {
+    if (!item.name.trim()) {
+      Alert.alert("Magic Fill", "Please fill in Task Name to use Magic Fill!");
+      return;
+    }
+
+    const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
+    if (!apiKey) {
+      Alert.alert("API Key Missing", "Please set EXPO_PUBLIC_GEMINI_API_KEY in your .env file.");
+      return;
+    }
+
+    setIsMagicFilling(item.id);
+    try {
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+      const systemPrompt = `You are a helper for 'RoutineRoyale'.
+      The user wants to 'Magic Fill' details for a task named: "${item.name}".
+      
+      Generate appropriate details in this JSON format:
+      {
+        "length": "string (e.g. '15 mins', '5 mins', '1 hour', '30 secs')",
+        "description": "string (brief instruction)",
+        "icon": "string (ONE OF: water, body, book, flash, barbell, cafe)"
+      }
+      
+      Return ONLY the raw JSON. No markdown.`;
+
+      const result = await model.generateContent(systemPrompt);
+      const response = await result.response;
+      const text = response.text();
+      const cleanedText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+      const data = JSON.parse(cleanedText);
+
+      updateTask(item.id, 'length', data.length);
+      updateTask(item.id, 'description', data.description);
+      updateTask(item.id, 'icon', data.icon);
+
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch (error) {
+      console.error("Magic Fill Error:", error);
+      Alert.alert("Magic Fill Failed", "Could not autofill task. Please try again.");
+    } finally {
+      setIsMagicFilling(null);
     }
   };
 
@@ -343,6 +392,15 @@ const Task_List = () => {
                     </TouchableOpacity>
                   ))}
                 </View>
+                <TouchableOpacity 
+                  onPress={() => handleMagicFill(item)}
+                  disabled={isMagicFilling === item.id}
+                  style={styles.magicFillBtn}
+                >
+                  <Text style={styles.magicFillText}>
+                    {isMagicFilling === item.id ? "Working..." : "Magic Fill..."}
+                  </Text>
+                </TouchableOpacity>
               </View>
             )}
 
@@ -606,6 +664,16 @@ const styles = StyleSheet.create({
   },
   unitOptionTextSelected: {
     color: '#3b82f6',
+  },
+  magicFillText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#3b82f6',
+    textTransform: 'uppercase',
+  },
+  magicFillBtn: {
+    marginTop: 10,
+    alignSelf: 'flex-start',
   },
 
   iconPicker: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 5 },

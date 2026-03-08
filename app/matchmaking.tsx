@@ -1,8 +1,16 @@
+import {
+  getDeterministicVariance,
+  parseLengthToSeconds,
+  formatSeconds,
+  useProfile,
+  getCompetitorFromDB,
+  getRandomCompetitors
+} from '@/context/ProfileContext';
 import { useTasks } from '@/context/TaskListContext';
 import { useTaskStatus } from '@/context/TaskStatusContext';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useEffect, useMemo, useState } from 'react';
+import { useRouter, useFocusEffect } from 'expo-router';
+import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 
 import {
   Dimensions,
@@ -24,42 +32,22 @@ import Animated, {
 
 const { width } = Dimensions.get('window');
 
-// Mock function to generate participants
-const generateParticipants = (userTime: number) => {
-  const names = ['Alex', 'Jordan', 'Taylor', 'Casey', 'Morgan', 'Riley', 'Jamie', 'Skylar', 'Charlie'];
-  const icons = ['flash', 'barbell', 'water', 'body', 'cafe', 'leaf', 'bicycle', 'walk', 'heart'];
-
-  return names.map((name, index) => {
-    // Variance is +/- 15% of user time
-    const variance = (Math.random() * 0.3 - 0.15) * userTime;
-    const matchedTime = Math.max(60, Math.floor(userTime + variance));
+const generateParticipantsFromBracket = (userTime: number, bracketIds: string[]) => {
+  return bracketIds.map((id) => {
+    const competitor = getCompetitorFromDB(id);
+    
+    // Variance is +/- 15% of user time, deterministic by ID
+    const varianceMultiplier = getDeterministicVariance(id);
+    const matchedTime = Math.max(60, Math.floor(userTime * (1 + varianceMultiplier)));
 
     return {
-      id: index + 100,
-      name,
-      icon: icons[index % icons.length],
+      id: id,
+      name: competitor.name,
+      icon: competitor.icon,
       totalSeconds: matchedTime,
       isUser: false,
     };
   });
-};
-
-const formatSeconds = (seconds: number) => {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = seconds % 60;
-
-  if (h > 0) return `${h}h ${m}m`;
-  if (m > 0) return `${m}m ${s}s`;
-  return `${s}s`;
-};
-
-const parseLengthToSeconds = (lengthStr: string) => {
-  const num = parseInt(lengthStr.replace(/[^0-9]/g, '')) || 0;
-  const lower = lengthStr.toLowerCase();
-  if (lower.includes('hour') || lower.includes('hr')) return num * 3600;
-  if (lower.includes('second') || lower.includes('sec')) return num;
-  return num * 60; // default to minutes
 };
 
 const Matchmaking = () => {
@@ -67,8 +55,10 @@ const Matchmaking = () => {
   const { tasks } = useTasks();
   const [searching, setSearching] = useState(true);
   const [matches, setMatches] = useState<any[]>([]);
-
   const { resetSession } = useTaskStatus();
+
+  const { currentBracket, setBracket } = useProfile();
+  const hasSimulated = useRef(false);
 
   const userTotalSeconds = useMemo(() => {
     return tasks.reduce((acc, task) => acc + parseLengthToSeconds(task.length), 0);
@@ -78,34 +68,53 @@ const Matchmaking = () => {
   const pulse = useSharedValue(0);
   const rotation = useSharedValue(0);
 
-  useEffect(() => {
-    pulse.value = withRepeat(
-      withTiming(1, { duration: 1500, easing: Easing.out(Easing.ease) }),
-      -1,
-      false
-    );
-    rotation.value = withRepeat(
-      withTiming(1, { duration: 3000, easing: Easing.linear }),
-      -1,
-      false
-    );
+  useFocusEffect(
+    useCallback(() => {
+      // Reset simulation state on focus
+      setSearching(true);
+      setMatches([]);
+      hasSimulated.current = false;
 
-    // Simulate matchmaking
-    const timer = setTimeout(() => {
-      const generated = generateParticipants(userTotalSeconds);
-      const user = {
-        id: -1,
-        name: 'You',
-        icon: 'person',
-        totalSeconds: userTotalSeconds,
-        isUser: true,
-      };
-      setMatches([user, ...generated].sort((a, b) => a.totalSeconds - b.totalSeconds));
-      setSearching(false);
-    }, 4000);
+      pulse.value = withRepeat(
+        withTiming(1, { duration: 1500, easing: Easing.out(Easing.ease) }),
+        -1,
+        false
+      );
+      rotation.value = withRepeat(
+        withTiming(1, { duration: 3000, easing: Easing.linear }),
+        -1,
+        false
+      );
 
-    return () => clearTimeout(timer);
-  }, [userTotalSeconds]);
+      // Simulate matchmaking
+      const timer = setTimeout(() => {
+        let activeBracketIds = [...currentBracket];
+
+        // If bracket is empty, generate 9 new random IDs from DB
+        if (activeBracketIds.length === 0) {
+          const newIds = getRandomCompetitors(9);
+          setBracket(newIds);
+          activeBracketIds = newIds;
+        }
+
+        const generated = generateParticipantsFromBracket(userTotalSeconds, activeBracketIds);
+        const user = {
+          id: 'user-0',
+          name: 'You',
+          icon: 'person',
+          totalSeconds: userTotalSeconds,
+          isUser: true,
+        };
+        
+        const allCompetitors = [user, ...generated].sort((a, b) => a.totalSeconds - b.totalSeconds);
+        setMatches(allCompetitors);
+        setSearching(false);
+        hasSimulated.current = true;
+      }, 4000);
+
+      return () => clearTimeout(timer);
+    }, [userTotalSeconds, currentBracket])
+  );
 
   const pulseStyle = useAnimatedStyle(() => ({
     transform: [{ scale: interpolate(pulse.value, [0, 1], [0.8, 2.5]) }],
@@ -132,7 +141,11 @@ const Matchmaking = () => {
 
         <View style={styles.textContainer}>
           <Text style={styles.searchingTitle}>Assembling Your Royale...</Text>
-          <Text style={styles.searchingSubtitle}>Finding 9 competitors with similar routines</Text>
+          <Text style={styles.searchingSubtitle}>
+            {currentBracket.length === 0 || currentBracket.length === 9 
+              ? "Finding 9 survivors remaining in your bracket" 
+              : "Loading competitor profiles..."}
+          </Text>
           <Text style={styles.timeTag}>Your Total: {formatSeconds(userTotalSeconds)}</Text>
         </View>
       </SafeAreaView>
@@ -153,10 +166,10 @@ const Matchmaking = () => {
         <View style={styles.matchCard}>
           <View style={styles.matchBadge}>
             <Ionicons name="people" size={18} color="white" />
-            <Text style={styles.matchBadgeText}>TOP 10 COMPETITORS</Text>
+            <Text style={styles.matchBadgeText}>{matches.length} SURVIVORS REMAINING</Text>
           </View>
-          <Text style={styles.matchHeadline}>This month's group is set.</Text>
-          <Text style={styles.matchSubline}>You compete against these players for the highest score.</Text>
+          <Text style={styles.matchHeadline}>The bracket is locked.</Text>
+          <Text style={styles.matchSubline}>You compete against these {matches.length - 1} survivors for the win.</Text>
         </View>
 
         {matches.map((player, index) => (

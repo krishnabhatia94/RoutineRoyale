@@ -1,5 +1,4 @@
-import { PointsProvider, usePoints } from '@/context/PointsContext'; 
-import { ProfileProvider } from '@/context/ProfileContext';
+import { useProfile, ProfileProvider } from '@/context/ProfileContext';
 import { TaskListProvider } from '@/context/TaskListContext';
 import { TaskStatusProvider } from '@/context/TaskStatusContext';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,7 +8,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const PointsHeader = () => {
-  const { totalPoints } = usePoints();
+  const { totalPoints } = useProfile();
 
   return (
     <View style={styles.pointsBadge}>
@@ -27,8 +26,7 @@ export default function Layout() {
       <ProfileProvider>
         <TaskStatusProvider>
           <TaskListProvider>
-            <PointsProvider>
-              <Tabs
+            <Tabs
                 screenOptions={{
                   headerTitle: () => <Text style={styles.headerTitle}>Routine Royale</Text>,
                   headerRight: () => <PointsHeader />,
@@ -120,7 +118,6 @@ export default function Layout() {
                 <Tabs.Screen name="post_routine" options={{ href: null }} />
                 <Tabs.Screen name="matchmaking" options={{ href: null }} />
               </Tabs>
-            </PointsProvider>
           </TaskListProvider>
         </TaskStatusProvider>
       </ProfileProvider>

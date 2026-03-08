@@ -1,9 +1,9 @@
+import { useProfile } from '../context/ProfileContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { usePoints } from '../context/PointsContext';
 import { useTasks } from '../context/TaskListContext';
 import { useTaskStatus } from '../context/TaskStatusContext';
 
@@ -12,7 +12,22 @@ const Routine_Active = () => {
   const insets = useSafeAreaInsets();
 
   const { tasks } = useTasks();
-  const { addPoints } = usePoints();
+  const { activeQuest } = useProfile();
+
+  // Combine tasks with active quest for display
+  const displayTasks = React.useMemo(() => {
+    if (!activeQuest) return tasks;
+    const questTask = {
+      ...activeQuest,
+      id: -activeQuest.id, // Use negative ID to avoid collision
+      isQuest: true,
+      name: `QUEST: ${activeQuest.title}`,
+      length: (activeQuest.length && activeQuest.length !== 'N/A') 
+        ? activeQuest.length 
+        : `+${activeQuest.points} pts`,
+    };
+    return [questTask, ...tasks];
+  }, [tasks, activeQuest]);
 
   // Pull everything from Status Context
   // toggleTaskStatus updates completedTaskIds
@@ -25,8 +40,8 @@ const Routine_Active = () => {
     toggleTaskStatus
   } = useTaskStatus();
 
-  // Logic: All tasks are done if every task ID in the master list is present in completedTaskIds
-  const allTasksDone = tasks.length > 0 && tasks.every(task => completedTaskIds.includes(task.id));
+  // Logic: All tasks are done if every task ID in the combined list is present in completedTaskIds
+  const allTasksDone = displayTasks.length > 0 && displayTasks.every(task => completedTaskIds.includes(task.id));
 
   const handleFinishRoutine = () => {
     setIsActive(false);
@@ -47,20 +62,29 @@ const Routine_Active = () => {
 
         <Text style={styles.subtitle}>Complete your tasks listed below to earn your points.</Text>
 
-        {tasks.map((task) => {
+        {displayTasks.map((task: any) => {
           const isDone = completedTaskIds.includes(task.id);
+          const isQuest = !!task.isQuest;
           return (
             <TouchableOpacity
               key={task.id}
-              style={[styles.taskCard, isDone && styles.taskCardDone]}
+              style={[
+                styles.taskCard, 
+                isDone && styles.taskCardDone,
+                isQuest && styles.questCardBorder
+              ]}
               onPress={() => toggleTaskStatus(task.id)}
               activeOpacity={0.7}
             >
-              <View style={[styles.iconCircle, isDone && styles.iconCircleDone]}>
+              <View style={[
+                styles.iconCircle, 
+                isDone && styles.iconCircleDone,
+                isQuest && !isDone && styles.questIconCircle
+              ]}>
                 <Ionicons
                   name={task.icon as any}
                   size={20}
-                  color={isDone ? "white" : "#1e40af"}
+                  color={isDone ? "white" : (isQuest ? "#f59e0b" : "#1e40af")}
                 />
               </View>
 
@@ -112,6 +136,8 @@ const styles = StyleSheet.create({
   taskCardDone: { borderColor: '#cbd5e1', backgroundColor: '#f1f5f9' },
   iconCircle: { width: 44, height: 44, borderRadius: 14, backgroundColor: '#eff6ff', justifyContent: 'center', alignItems: 'center', marginRight: 15 },
   iconCircleDone: { backgroundColor: '#10b981' },
+  questIconCircle: { backgroundColor: '#fffbeb' },
+  questCardBorder: { borderColor: '#fde68a', backgroundColor: '#fffdf5' },
   taskText: { fontSize: 16, color: '#1e293b', fontWeight: 'bold' },
   taskTextDone: { textDecorationLine: 'line-through', color: '#94a3b8' },
   taskLengthText: { fontSize: 13, color: '#64748b', marginTop: 2 },
