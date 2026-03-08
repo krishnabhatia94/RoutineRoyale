@@ -10,6 +10,8 @@ const Profile = () => {
   // Pull totalPoints and the reset function from context
   // Note: Ensure you've added setTotalPoints(0) to your context!
   const { totalPoints, addPoints } = usePoints();
+  const [username, setUsername] = React.useState("kbhatia94");
+  const [userId, setUserId] = React.useState("24681012");
 
   // Helper for resetting (using addPoints with a negative or adding a new reset function)
   const handleResetPoints = () => {
@@ -51,13 +53,15 @@ const Profile = () => {
               <Ionicons name="pencil" size={16} color="white" />
             </TouchableOpacity>
           </View>
-          <Text style={styles.userTitle}>Elite Competitor</Text>
+          <Text style={styles.userTitle}>{username}</Text>
         </View>
 
         {/* Account Info Card */}
         <View style={styles.card}>
           {renderInfoRow("Name", "Krishna Bhatia")}
+          {renderInfoRow("Username", username)}
           {renderInfoRow("Birthday", "January 15, 2002")}
+          {renderInfoRow("User ID", userId)}
         </View>
 
         {/* Divider & Stats Header */}

@@ -6,7 +6,7 @@ import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } fr
 
 const Home = () => {
   const router = useRouter();
-  
+
   const [points, setPoints] = useState(0);
   const [status, setStatus] = useState("Clock In");
   const [isClockedIn, setIsClockedIn] = useState(false);
@@ -21,20 +21,19 @@ const Home = () => {
 
   const handleClockIn = () => {
     // setStatus("Loading...");
-    resetSession();
-    router.push('/routine_active');
+    router.push('/matchmaking');
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-        
+
         {/* Portal Card */}
         <View style={styles.portalCard}>
           <Text style={styles.portalHeadline}>Ready to start your routine?</Text>
-          
-          <TouchableOpacity 
-            style={[styles.clockBtn, isClockedIn && styles.clockBtnSuccess]} 
+
+          <TouchableOpacity
+            style={[styles.clockBtn, isClockedIn && styles.clockBtnSuccess]}
             onPress={handleClockIn}
             disabled={isClockedIn}
           >
@@ -44,7 +43,7 @@ const Home = () => {
 
           <View style={styles.statusBadge}>
             <Text style={styles.statusText}>
-              6/10 Players Left This Month!
+              10/10 Players Left This Month!
             </Text>
           </View>
         </View>
@@ -56,7 +55,7 @@ const Home = () => {
           <View style={styles.line} />
         </View>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.taskEditBtn}
           onPress={() => router.push('/task_list')}
         >
@@ -95,22 +94,22 @@ const Home = () => {
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#f8fafc' },
   scrollContainer: { padding: 20, alignItems: 'center' },
-  
+
   // Portal Card Styles
-  portalCard: { 
-    width: '100%', 
-    backgroundColor: '#1e40af', 
-    borderRadius: 24, 
-    padding: 30, 
+  portalCard: {
+    width: '100%',
+    backgroundColor: '#1e40af',
+    borderRadius: 24,
+    padding: 30,
     alignItems: 'center',
-    marginTop: 20 
+    marginTop: 20
   },
   portalHeadline: { color: 'white', fontSize: 20, marginBottom: 30, fontWeight: '600' },
-  clockBtn: { 
-    backgroundColor: '#3b82f6', 
-    flexDirection: 'row', 
-    paddingVertical: 15, 
-    paddingHorizontal: 40, 
+  clockBtn: {
+    backgroundColor: '#3b82f6',
+    flexDirection: 'row',
+    paddingVertical: 15,
+    paddingHorizontal: 40,
     borderRadius: 50,
     alignItems: 'center'
   },
@@ -128,12 +127,12 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   line: { flex: 1, height: 1, backgroundColor: '#e2e8f0' },
-  dividerText: { 
-    marginHorizontal: 15, 
-    color: '#94a3b8', 
-    fontWeight: 'bold', 
-    letterSpacing: 1.5, 
-    fontSize: 11 
+  dividerText: {
+    marginHorizontal: 15,
+    color: '#94a3b8',
+    fontWeight: 'bold',
+    letterSpacing: 1.5,
+    fontSize: 11
   },
 
   // New Task Edit Button Styles

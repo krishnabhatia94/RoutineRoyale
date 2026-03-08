@@ -10,19 +10,19 @@ import { useTaskStatus } from '../context/TaskStatusContext';
 const Routine_Active = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  
+
   const { tasks } = useTasks();
   const { addPoints } = usePoints();
 
   // Pull everything from Status Context
   // toggleTaskStatus updates completedTaskIds
   // elapsedSeconds is the "live" ticking value from the Provider's useEffect
-  const { 
-    elapsedSeconds, 
-    formatTime, 
-    setIsActive, 
-    completedTaskIds, 
-    toggleTaskStatus 
+  const {
+    elapsedSeconds,
+    formatTime,
+    setIsActive,
+    completedTaskIds,
+    toggleTaskStatus
   } = useTaskStatus();
 
   // Logic: All tasks are done if every task ID in the master list is present in completedTaskIds
@@ -38,30 +38,30 @@ const Routine_Active = () => {
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         <View style={styles.sectionHeader}>
-            <Text style={styles.title}>Routine Active</Text>
-            <View style={styles.timerBadge}>
-                <Ionicons name="stopwatch-outline" size={16} color="#1e40af" />
-                {/* DISPLAYING LIVE CONTEXT TIME HERE */}
-                <Text style={styles.timerText}>{formatTime(elapsedSeconds)}</Text>
-            </View>
+          <Text style={styles.title}>Routine Active</Text>
+          <View style={styles.timerBadge}>
+            <Ionicons name="stopwatch-outline" size={16} color="#1e40af" />
+            {/* DISPLAYING LIVE CONTEXT TIME HERE */}
+            <Text style={styles.timerText}>{formatTime(elapsedSeconds)}</Text>
+          </View>
         </View>
 
-        <Text style={styles.subtitle}>Complete your morning habits to earn your points.</Text>
+        <Text style={styles.subtitle}>Complete your tasks listed below to earn your points.</Text>
 
         {tasks.map((task) => {
           const isDone = completedTaskIds.includes(task.id);
           return (
-            <TouchableOpacity 
-              key={task.id} 
+            <TouchableOpacity
+              key={task.id}
               style={[styles.taskCard, isDone && styles.taskCardDone]}
               onPress={() => toggleTaskStatus(task.id)}
               activeOpacity={0.7}
             >
               <View style={[styles.iconCircle, isDone && styles.iconCircleDone]}>
-                <Ionicons 
-                  name={task.icon as any} 
-                  size={20} 
-                  color={isDone ? "white" : "#1e40af"} 
+                <Ionicons
+                  name={task.icon as any}
+                  size={20}
+                  color={isDone ? "white" : "#1e40af"}
                 />
               </View>
 
@@ -73,7 +73,7 @@ const Routine_Active = () => {
               </View>
 
               <View style={[styles.miniCheckbox, isDone && styles.miniCheckboxChecked]}>
-                 {isDone && <Ionicons name="checkmark" size={12} color="white" />}
+                {isDone && <Ionicons name="checkmark" size={12} color="white" />}
               </View>
             </TouchableOpacity>
           );
@@ -82,11 +82,11 @@ const Routine_Active = () => {
 
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 20) }]}>
         <View style={styles.elapsedContainer}>
-            <Text style={styles.elapsedLabel}>Total Time Elapsed</Text>
-            <Text style={styles.elapsedValue}>{formatTime(elapsedSeconds)}</Text>
+          <Text style={styles.elapsedLabel}>Total Time Elapsed</Text>
+          <Text style={styles.elapsedValue}>{formatTime(elapsedSeconds)}</Text>
         </View>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.clockOutBtn, !allTasksDone && styles.clockOutBtnDisabled]}
           disabled={!allTasksDone}
           onPress={handleFinishRoutine}
