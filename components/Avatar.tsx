@@ -33,7 +33,7 @@ const Avatar: React.FC<AvatarProps> = ({
         <View style={[
           styles.hatOverlay, 
           { 
-            top: (size * 0.1) + hatTopOffset,
+            top: (size * -0.15) + hatTopOffset,
             transform: [{ translateX: hatLeftOffset }]
           }
         ]}>
@@ -44,7 +44,7 @@ const Avatar: React.FC<AvatarProps> = ({
         <View style={[
           styles.shirtOverlay, 
           { 
-            bottom: (size * 0.15) + shirtBottomOffset,
+            bottom: (size * 0.025) + shirtBottomOffset,
             transform: [{ translateX: shirtLeftOffset }]
           }
         ]}>

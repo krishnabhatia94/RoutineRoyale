@@ -19,7 +19,8 @@ const Profile = () => {
     addPoints,
     isDarkMode,
     toggleDarkMode,
-    customAvatar
+    customAvatar,
+    logout
   } = useProfile();
 
   const handleResetPoints = () => {
@@ -118,7 +119,10 @@ const Profile = () => {
         </TouchableOpacity>
 
         {/* Logout Button */}
-        <TouchableOpacity style={styles.logoutBtn}>
+        <TouchableOpacity style={styles.logoutBtn} onPress={() => {
+          logout();
+          router.replace('/setup');
+        }}>
           <Text style={styles.logoutBtnText}>Logout</Text>
         </TouchableOpacity>
 

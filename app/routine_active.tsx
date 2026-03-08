@@ -150,7 +150,7 @@ const Routine_Active = () => {
           onPress={handleFinishRoutine}
         >
           <Text style={styles.clockOutText}>
-            {allTasksDone ? "Finish Routine & Clock Out" : "Complete All Tasks"}
+            {allTasksDone ? "Finish Routine" : "Complete All Tasks"}
           </Text>
         </TouchableOpacity>
       </View>

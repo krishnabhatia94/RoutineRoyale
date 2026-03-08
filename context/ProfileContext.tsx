@@ -107,6 +107,7 @@ interface ProfileContextType {
   updateCustomAvatar: (attrs: Partial<CustomAvatar>) => void;
   unlockedItems: string[];
   unlockItem: (itemId: string, cost: number) => boolean;
+  logout: () => void;
 }
 
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
@@ -163,6 +164,16 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
     return false;
   };
 
+  const logout = () => {
+    setTotalPoints(0);
+    setChallengesWon(0);
+    setCustomAvatar({ skinColor: '#3b82f6' });
+    setUnlockedItems(['#3b82f6', '#FFDBAC', '#8D5524', '#F1C27D', '#C68642']);
+    setName('');
+    setUsername('');
+    setActiveQuest(null);
+  };
+
   return (
     <ProfileContext.Provider
       value={{
@@ -194,7 +205,8 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
         customAvatar,
         updateCustomAvatar,
         unlockedItems,
-        unlockItem
+        unlockItem,
+        logout
       }}
     >
       {children}

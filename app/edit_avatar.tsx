@@ -25,18 +25,18 @@ const HATS = [
   { name: "None", id: "none", icon: "ban", price: 0 },
   { name: "Briefcase", id: "briefcase", icon: "briefcase", price: 0 },
   { name: "Glasses", id: "glasses", icon: "glasses", price: 20 },
-  { name: "School", id: "school", icon: "school", price: 20 },
-  { name: "Medal", id: "medal", icon: "medal", price: 20 },
-  { name: "Musical", id: "musical-notes", icon: "musical-notes", price: 20 },
+  { name: "School", id: "school", icon: "school", price: 30 },
+  { name: "Medal", id: "medal", icon: "medal", price: 40 },
+  { name: "Musical", id: "musical-notes", icon: "musical-notes", price: 50 },
 ];
 
 const SHIRTS = [
   { name: "None", id: "none", icon: "ban", price: 0 },
   { name: "Fitness", id: "fitness", icon: "fitness", price: 0 },
   { name: "Water", id: "water", icon: "water", price: 20 },
-  { name: "Book", id: "book", icon: "book", price: 20 },
-  { name: "Flame", id: "flame", icon: "flame", price: 20 },
-  { name: "Leaf", id: "leaf", icon: "leaf", price: 20 },
+  { name: "Book", id: "book", icon: "book", price: 30 },
+  { name: "Flame", id: "flame", icon: "flame", price: 40 },
+  { name: "Leaf", id: "leaf", icon: "leaf", price: 50 },
 ];
 
 const Edit_Avatar = () => {
@@ -146,11 +146,6 @@ const Edit_Avatar = () => {
             customAvatar={customAvatar}
             size={120}
             isDarkMode={isDarkMode}
-            // Adjust these offsets to fine-tune accessory positioning
-            hatTopOffset={-30}
-            hatLeftOffset={0}
-            shirtBottomOffset={-15}
-            shirtLeftOffset={0}
           />
           <Text style={[styles.previewText, isDarkMode && styles.previewTextDark]}>Avatar Preview</Text>
         </View>

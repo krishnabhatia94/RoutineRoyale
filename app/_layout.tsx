@@ -1,9 +1,9 @@
-import { useProfile, ProfileProvider } from '@/context/ProfileContext';
+import { ProfileProvider, useProfile } from '@/context/ProfileContext';
 import { TaskListProvider } from '@/context/TaskListContext';
 import { TaskStatusProvider } from '@/context/TaskStatusContext';
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
-import { Platform, StyleSheet, Text, View, StatusBar } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -24,6 +24,7 @@ function TabNavigator() {
 
   return (
     <Tabs
+      initialRouteName="setup"
       screenOptions={{
         headerTitle: () => <Text style={[styles.headerTitle, isDarkMode && styles.headerTitleDark]}>Routine Royale</Text>,
         headerRight: () => <PointsHeader />,
@@ -102,12 +103,20 @@ function TabNavigator() {
       />
 
       <Tabs.Screen name="index" options={{ href: null }} />
-      <Tabs.Screen 
-        name="edit_avatar" 
-        options={{ 
+      <Tabs.Screen
+        name="setup"
+        options={{
+          href: null,
+          tabBarStyle: { display: 'none' },
+          headerShown: false
+        }}
+      />
+      <Tabs.Screen
+        name="edit_avatar"
+        options={{
           href: null,
           tabBarStyle: { display: 'none' }
-        }} 
+        }}
       />
       <Tabs.Screen
         name="routine_active"
@@ -117,12 +126,12 @@ function TabNavigator() {
           headerShown: true
         }}
       />
-      <Tabs.Screen 
-        name="task_list" 
-        options={{ 
+      <Tabs.Screen
+        name="task_list"
+        options={{
           href: null,
           tabBarStyle: { display: 'none' }
-        }} 
+        }}
       />
       <Tabs.Screen name="post_routine" options={{ href: null }} />
       <Tabs.Screen name="matchmaking" options={{ href: null }} />
@@ -166,4 +175,4 @@ const styles = StyleSheet.create({
   pointsValueDark: { color: '#38bdf8' },
   pointsLabel: { fontSize: 10, color: '#64748b', textTransform: 'uppercase', marginLeft: 4, fontWeight: '600' },
   pointsLabelDark: { color: '#94a3b8' },
-});
+});

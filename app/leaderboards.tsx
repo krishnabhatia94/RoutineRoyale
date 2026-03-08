@@ -1,15 +1,34 @@
-import { useProfile } from '@/context/ProfileContext';
+import { useProfile, getCompetitorFromDB, getDeterministicIndex } from '@/context/ProfileContext';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const Leaderboards = () => {
-  const { isDarkMode } = useProfile();
-  const friends = [
-    { id: '1', name: 'Piyush Mehta', points: 2840, rank: 1, trend: 'up' },
-    { id: '2', name: 'Alex Rivers', points: 2450, rank: 2, trend: 'down' },
-    { id: '3', name: 'Jordan Smith', points: 1850, rank: 3, trend: 'stable' },
-  ];
+  const { isDarkMode, friendIDs, name, userId, totalPoints } = useProfile();
+
+  // Generate friends data based on deterministic index for consistent point values to match friends.tsx
+  const friendsData = friendIDs.map(id => {
+    const comp = getCompetitorFromDB(id);
+    const pts = 1000 + (getDeterministicIndex(id, 20) * 100);
+    return {
+      id: comp.id,
+      name: comp.name,
+      points: pts,
+      trend: (pts % 3 === 0 ? 'stable' : pts % 2 === 0 ? 'up' : 'down') as 'up' | 'down' | 'stable'
+    };
+  });
+
+  // Add current user
+  const currentUserEntry = {
+    id: userId || 'current-user',
+    name: name || 'You',
+    points: totalPoints,
+    trend: 'up' as 'up' | 'down' | 'stable'
+  };
+  
+  const allFriends = [...friendsData, currentUserEntry]
+    .sort((a, b) => b.points - a.points)
+    .map((f, index) => ({ ...f, rank: index + 1 }));
 
   const global = [
     { id: 'g1', name: 'RoutineMaster99', points: 15420, rank: 1 },
@@ -33,8 +52,12 @@ const Leaderboards = () => {
         )}
       </View>
       
-      <View style={[styles.avatar, isDarkMode && styles.avatarDark]}>
-        <Text style={styles.avatarText}>{item.name.charAt(0)}</Text>
+      <View style={[!isGlobal ? styles.avatarPlaceholder : styles.avatar, isDarkMode && (!isGlobal ? styles.avatarPlaceholderDark : styles.avatarDark)]}>
+        {!isGlobal ? (
+          <Ionicons name="person" size={20} color={isDarkMode ? "#38bdf8" : "#1e40af"} />
+        ) : (
+          <Text style={styles.avatarText}>{item.name.charAt(0)}</Text>
+        )}
       </View>
 
       <View style={styles.info}>
@@ -63,7 +86,7 @@ const Leaderboards = () => {
           <Text style={[styles.sectionTitle, isDarkMode && styles.sectionTitleDark]}>Friends League</Text>
         </View>
         <View style={[styles.card, isDarkMode && styles.cardDark]}>
-          {friends.map(f => renderRow(f))}
+          {allFriends.map(f => renderRow(f))}
         </View>
 
         {/* Global Section */}
@@ -137,6 +160,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#38bdf8',
   },
   avatarText: { color: 'white', fontWeight: 'bold', fontSize: 14 },
+  avatarPlaceholder: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#e0e7ff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 12,
+  },
+  avatarPlaceholderDark: {
+    backgroundColor: '#0f172a',
+  },
   info: { flex: 1 },
   nameText: { fontWeight: '600', color: '#1e293b', fontSize: 15 },
   nameTextDark: { color: '#f8fafc' },

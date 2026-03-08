@@ -1,5 +1,5 @@
 import { Redirect } from 'expo-router';
 
 export default function EntryPoint() {
-  return <Redirect href="/home" />;
+  return <Redirect href="/setup" />;
 }
