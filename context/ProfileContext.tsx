@@ -172,6 +172,8 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
     setName('');
     setUsername('');
     setActiveQuest(null);
+    setCurrentBracket([]);
+    setIsFriendRoyale(false);
   };
 
   return (

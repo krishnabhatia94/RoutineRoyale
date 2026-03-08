@@ -26,7 +26,7 @@ function TabNavigator() {
     <Tabs
       initialRouteName="setup"
       screenOptions={{
-        headerTitle: () => <Text style={[styles.headerTitle, isDarkMode && styles.headerTitleDark]}>Routine Royale</Text>,
+        headerTitle: () => <Text style={[styles.headerTitle, isDarkMode && styles.headerTitleDark]}>RoutineRoyale</Text>,
         headerRight: () => <PointsHeader />,
         headerStyle: {
           backgroundColor: isDarkMode ? '#1e293b' : 'white',
