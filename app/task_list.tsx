@@ -1,3 +1,4 @@
+import { useProfile } from '@/context/ProfileContext';
 import { useTasks } from '@/context/TaskListContext';
 import { Ionicons } from '@expo/vector-icons';
 import { GoogleGenerativeAI } from '@google/generative-ai';
@@ -33,6 +34,24 @@ const Task_List = () => {
   const [isGenerating, setIsGenerating] = useState(false);
 
   const { tasks, addTask, updateTask, deleteTask, setTasks } = useTasks();
+  const { activeQuest, setActiveQuest } = useProfile();
+
+  // Combine tasks with active quest for display
+  const displayTasks = React.useMemo(() => {
+    if (!activeQuest) return tasks;
+    const questTask = {
+      ...activeQuest,
+      id: -activeQuest.id, // Use negative ID to avoid collision
+      isQuest: true,
+      name: `QUEST: ${activeQuest.title}`,
+      length: (activeQuest.length && activeQuest.length !== 'N/A') 
+        ? activeQuest.length 
+        : `+${activeQuest.points} pts`,
+      description: activeQuest.description,
+      icon: activeQuest.icon,
+    };
+    return [questTask, ...tasks];
+  }, [tasks, activeQuest]);
 
   const [initialTasks, setInitialTasks] = useState(JSON.stringify(tasks));
 
@@ -208,8 +227,8 @@ const Task_List = () => {
             onPress={() => toggleExpand(item.id)}
             activeOpacity={0.7}
           >
-            <View style={styles.iconCircle}>
-              <Ionicons name={item.icon as any} size={20} color="#1e40af" />
+            <View style={[styles.iconCircle, item.isQuest && styles.questIconCircle]}>
+              <Ionicons name={item.icon as any} size={20} color={item.isQuest ? "#f59e0b" : "#1e40af"} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.taskNamePreview}>{item.name || "New Task"}</Text>
@@ -230,46 +249,64 @@ const Task_List = () => {
               <TextInput
                 style={styles.input}
                 value={item.name}
-                onChangeText={(val) => updateTask(item.id, 'name', val)}
+                onChangeText={(val) => !item.isQuest && updateTask(item.id, 'name', val)}
                 placeholder="e.g. Morning Meditation"
+                editable={!item.isQuest}
               />
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Length of Task</Text>
+              <View style={styles.labelRow}>
+                <Text style={styles.label}>Length of Task</Text>
+                {item.isQuest && (
+                  <Text style={styles.questDurationLabel}>Quest Points: {item.points} pts</Text>
+                )}
+              </View>
               <View style={styles.lengthInputRow}>
                 <TextInput
                   style={[styles.input, styles.numericInput]}
-                  value={parseLength(item.length).num}
+                  value={item.isQuest && item.length === 'N/A' ? 'N/A' : parseLength(item.length).num}
                   onChangeText={(val) => {
+                    if (item.isQuest) return;
                     const { unit } = parseLength(item.length);
                     updateTask(item.id, 'length', `${val} ${unit}`);
                   }}
                   placeholder="e.g. 10"
                   keyboardType="numeric"
+                  editable={!item.isQuest}
                 />
-                <View style={styles.unitPicker}>
-                  {unitOptions.map((unit) => (
-                    <TouchableOpacity
-                      key={unit}
-                      style={[
-                        styles.unitOption,
-                        parseLength(item.length).unit === unit && styles.unitOptionSelected
-                      ]}
-                      onPress={() => {
-                        const { num } = parseLength(item.length);
-                        updateTask(item.id, 'length', `${num} ${unit}`);
-                      }}
-                    >
-                      <Text style={[
-                        styles.unitOptionText,
-                        parseLength(item.length).unit === unit && styles.unitOptionTextSelected
-                      ]}>
-                        {unit.charAt(0).toUpperCase() + unit.slice(1)}
+                {!item.isQuest ? (
+                  <View style={styles.unitPicker}>
+                    {unitOptions.map((unit) => (
+                      <TouchableOpacity
+                        key={unit}
+                        style={[
+                          styles.unitOption,
+                          parseLength(item.length).unit === unit && styles.unitOptionSelected
+                        ]}
+                        onPress={() => {
+                          const { num } = parseLength(item.length);
+                          updateTask(item.id, 'length', `${num} ${unit}`);
+                        }}
+                      >
+                        <Text style={[
+                          styles.unitOptionText,
+                          parseLength(item.length).unit === unit && styles.unitOptionTextSelected
+                        ]}>
+                          {unit.charAt(0).toUpperCase() + unit.slice(1)}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                ) : (
+                  item.isQuest && item.length && !item.length.includes('pts') && item.length !== 'N/A' ? (
+                    <View style={styles.questUnitDisplay}>
+                      <Text style={styles.questUnitText}>
+                        {parseLength(item.length).unit.charAt(0).toUpperCase() + parseLength(item.length).unit.slice(1)}
                       </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
+                    </View>
+                  ) : null
+                )}
               </View>
             </View>
 
@@ -278,40 +315,52 @@ const Task_List = () => {
               <TextInput
                 style={[styles.input, styles.textArea]}
                 value={item.description}
-                onChangeText={(val) => updateTask(item.id, 'description', val)}
+                onChangeText={(val) => !item.isQuest && updateTask(item.id, 'description', val)}
                 multiline
                 placeholder="What needs to be done?"
+                editable={!item.isQuest}
               />
             </View>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Choose Icon</Text>
-              <View style={styles.iconPicker}>
-                {iconOptions.map((iconName) => (
-                  <TouchableOpacity
-                    key={iconName}
-                    style={[
-                      styles.iconOption,
-                      item.icon === iconName && styles.iconOptionSelected
-                    ]}
-                    onPress={() => updateTask(item.id, 'icon', iconName)}
-                  >
-                    <Ionicons
-                      name={iconName as any}
-                      size={20}
-                      color={item.icon === iconName ? "white" : "#64748b"}
-                    />
-                  </TouchableOpacity>
-                ))}
+            {!item.isQuest && (
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Choose Icon</Text>
+                <View style={styles.iconPicker}>
+                  {iconOptions.map((iconName) => (
+                    <TouchableOpacity
+                      key={iconName}
+                      style={[
+                        styles.iconOption,
+                        item.icon === iconName && styles.iconOptionSelected
+                      ]}
+                      onPress={() => updateTask(item.id, 'icon', iconName)}
+                    >
+                      <Ionicons
+                        name={iconName as any}
+                        size={20}
+                        color={item.icon === iconName ? "white" : "#64748b"}
+                      />
+                    </TouchableOpacity>
+                  ))}
+                </View>
               </View>
-            </View>
+            )}
 
-            <TouchableOpacity
-              style={styles.deleteBtn}
-              onPress={() => deleteTask(item.id)}>
-              <Ionicons name="trash-outline" size={18} color="#ef4444" />
-              <Text style={styles.deleteBtnText}>Delete Task</Text>
-            </TouchableOpacity>
+            {item.isQuest ? (
+              <TouchableOpacity
+                style={[styles.deleteBtn, styles.deselectQuestBtn]}
+                onPress={() => setActiveQuest(null)}>
+                <Ionicons name="close-circle-outline" size={18} color="#f59e0b" />
+                <Text style={[styles.deleteBtnText, styles.deselectQuestBtnText]}>Deselect Quest</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={styles.deleteBtn}
+                onPress={() => deleteTask(item.id)}>
+                <Ionicons name="trash-outline" size={18} color="#ef4444" />
+                <Text style={styles.deleteBtnText}>Delete Task</Text>
+              </TouchableOpacity>
+            )}
           </View>
         )}
       </View>
@@ -322,8 +371,12 @@ const Task_List = () => {
     <SafeAreaView style={styles.safeArea}>
       <DraggableFlatList
         containerStyle={{ flex: 1 }}
-        data={tasks}
-        onDragEnd={({ data }: { data: any[] }) => setTasks(data)}
+        data={displayTasks}
+        onDragEnd={({ data }: { data: any[] }) => {
+          // Filter out the quest before saving order
+          const updatedTasks = data.filter(t => !t.isQuest);
+          setTasks(updatedTasks);
+        }}
         keyExtractor={(item: any) => item.id.toString()}
         renderItem={renderItem}
         contentContainerStyle={styles.scrollContainer}
@@ -492,6 +545,18 @@ const styles = StyleSheet.create({
   },
   inputGroup: { marginTop: 15 },
   label: { fontSize: 12, fontWeight: 'bold', color: '#94a3b8', marginBottom: 6, textTransform: 'uppercase' },
+  labelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  questDurationLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#3b82f6',
+    textTransform: 'uppercase',
+  },
   input: {
     backgroundColor: '#f8fafc',
     borderWidth: 1,
@@ -601,6 +666,32 @@ const styles = StyleSheet.create({
   aiFabActive: {
     backgroundColor: '#1e293b',
     shadowColor: '#000',
+  },
+  questIconCircle: {
+    backgroundColor: '#fffbeb',
+  },
+  deselectQuestBtn: {
+    backgroundColor: '#fffbeb',
+    borderColor: '#fde68a',
+  },
+  deselectQuestBtnText: {
+    color: '#f59e0b',
+  },
+  questUnitDisplay: {
+    backgroundColor: '#f1f5f9',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    minWidth: 100,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  questUnitText: {
+    color: '#64748b',
+    fontWeight: '600',
+    fontSize: 14,
   },
   aiOverlay: {
     backgroundColor: 'white',

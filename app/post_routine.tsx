@@ -3,7 +3,8 @@ import { useRouter } from 'expo-router';
 import React, { useEffect, useRef } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { usePoints } from '../context/PointsContext'; // Import Points
+import { usePoints } from '../context/PointsContext';
+import { useProfile } from '../context/ProfileContext';
 import { useTaskStatus } from '../context/TaskStatusContext';
 
 const Post_Routine = () => {
@@ -11,6 +12,7 @@ const Post_Routine = () => {
   const insets = useSafeAreaInsets();
   const { elapsedSeconds, formatTime } = useTaskStatus();
   const { lastPointsGained, addPoints } = usePoints();
+  const { activeQuest } = useProfile();
 
   // Generate randomized competitors once per mount
   const leaderboard = React.useMemo(() => {
@@ -52,8 +54,11 @@ const Post_Routine = () => {
   useEffect(() => {
     if (!pointsAwarded.current && userRank > 0) {
       // Formula: ((11 - place) + 2) * 2
-      const pointsGained = ((11 - userRank) + 2) * 2;
-      addPoints(pointsGained);
+      const placementPoints = ((11 - userRank) + 2) * 2;
+      const questPoints = activeQuest ? activeQuest.points : 0;
+      const totalGained = placementPoints + questPoints;
+      
+      addPoints(totalGained);
       pointsAwarded.current = true;
     }
   }, [userRank, addPoints]);
@@ -91,6 +96,14 @@ const Post_Routine = () => {
               <Ionicons name="star-outline" size={24} color="#8b5cf6" />
               <Text style={styles.statText}>Points Gained: +{lastPointsGained} PTS</Text>
             </View>
+
+            {/* NEW Quest Points Row */}
+            {activeQuest && (
+              <View style={[styles.statRow, styles.statRowBorder]}>
+                <Ionicons name="gift-outline" size={24} color="#f59e0b" />
+                <Text style={styles.statText}>Points Gained From Quest: +{activeQuest.points} PTS</Text>
+              </View>
+            )}
           </View>
 
           {/* Leaderboard Summary */}

@@ -4,25 +4,20 @@ import React from 'react';
 import { Alert, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { usePoints } from '../context/PointsContext'; // Import points context
 
+import { useProfile } from '../context/ProfileContext';
+
 const Profile = () => {
   const router = useRouter();
-  
-  // Pull totalPoints and the reset function from context
-  // Note: Ensure you've added setTotalPoints(0) to your context!
   const { totalPoints, addPoints } = usePoints();
-  const [username, setUsername] = React.useState("kbhatia94");
-  const [userId, setUserId] = React.useState("24681012");
+  const { name, username, dob, userId, activeQuest } = useProfile();
 
-  // Helper for resetting (using addPoints with a negative or adding a new reset function)
   const handleResetPoints = () => {
     Alert.alert(
       "Reset Points",
       "Are you sure you want to clear all your progress? This cannot be undone.",
       [
         { text: "Cancel", style: "cancel" },
-        // If you add a dedicated resetPoints function to your context, call it here:
         { text: "Reset", style: "destructive", onPress: () => {
-             // For now, we'll just subtract the current total if no reset function exists
              addPoints(-totalPoints); 
         }}
       ]
@@ -58,10 +53,11 @@ const Profile = () => {
 
         {/* Account Info Card */}
         <View style={styles.card}>
-          {renderInfoRow("Name", "Krishna Bhatia")}
+          {renderInfoRow("Name", name)}
           {renderInfoRow("Username", username)}
-          {renderInfoRow("Birthday", "January 15, 2002")}
+          {renderInfoRow("Birthday", dob)}
           {renderInfoRow("User ID", userId)}
+          {renderInfoRow("Active Quest", activeQuest ? activeQuest.title : "None")}
         </View>
 
         {/* Divider & Stats Header */}

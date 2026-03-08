@@ -1,15 +1,20 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { Dimensions, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-
-const { width } = Dimensions.get('window');
+import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import questsData from '../constants/quests.json';
+import { useProfile, Quest } from '../context/ProfileContext';
 
 const Quests = () => {
-  const dailyQuests = [
-    { id: 1, title: 'Morning Hydration', description: 'Drink 500ml of water', points: 50, icon: 'water', status: 'completed' },
-    { id: 2, title: 'Power Pushups', description: 'Do 20 pushups', points: 100, icon: 'fitness', status: 'active' },
-    { id: 3, title: 'Deep Focus', description: '15 mins of meditation', points: 75, icon: 'leaf', status: 'active' },
-  ];
+  const { activeQuest, setActiveQuest } = useProfile();
+  const dailyQuests = questsData as Quest[];
+
+  const handleToggleQuest = (quest: Quest) => {
+    if (activeQuest?.id === quest.id) {
+      setActiveQuest(null);
+    } else {
+      setActiveQuest(quest);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -27,31 +32,41 @@ const Quests = () => {
           </Text>
         </View>
 
-        {dailyQuests.map((quest) => (
-          <View key={quest.id} style={styles.questCard}>
-            <View style={[styles.iconBox, quest.status === 'completed' && styles.iconBoxDone]}>
-              <Ionicons 
-                name={quest.icon as any} 
-                size={22} 
-                color={quest.status === 'completed' ? '#10b981' : '#1e40af'} 
-              />
-            </View>
-            <View style={styles.questInfo}>
-              <Text style={styles.questTitle}>{quest.title}</Text>
-              <Text style={styles.questDesc}>{quest.description}</Text>
-            </View>
-            <TouchableOpacity 
-              style={[styles.questAction, quest.status === 'completed' && styles.questActionDone]}
-              disabled={quest.status === 'completed'}
+        {dailyQuests.map((quest) => {
+          const isActive = activeQuest?.id === quest.id;
+          return (
+            <TouchableOpacity
+              key={quest.id}
+              style={[
+                styles.questCard,
+                isActive && styles.questCardActive
+              ]}
+              onPress={() => handleToggleQuest(quest)}
+              activeOpacity={0.7}
             >
-              {quest.status === 'completed' ? (
-                <Ionicons name="checkmark" size={20} color="white" />
-              ) : (
-                <Text style={styles.pointsAdd}>+{quest.points}</Text>
-              )}
+              <View style={[styles.iconBox, isActive && styles.iconBoxActive]}>
+                <Ionicons
+                  name={quest.icon as any}
+                  size={22}
+                  color={isActive ? '#3b82f6' : '#1e40af'}
+                />
+              </View>
+              <View style={styles.questInfo}>
+                <Text style={[styles.questTitle, isActive && styles.questTitleActive]}>{quest.title}</Text>
+                <Text style={styles.questDesc}>{quest.description}</Text>
+              </View>
+              <View
+                style={[styles.questAction, isActive && styles.questActionActive]}
+              >
+                {isActive ? (
+                  <Text style={styles.activeLabel}>Active</Text>
+                ) : (
+                  <Text style={styles.pointsAdd}>+{quest.points}</Text>
+                )}
+              </View>
             </TouchableOpacity>
-          </View>
-        ))}
+          );
+        })}
 
       </ScrollView>
     </SafeAreaView>
@@ -61,11 +76,11 @@ const Quests = () => {
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#f8fafc' },
   scrollContainer: { padding: 20 },
-  sectionHeader: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 15 
+    marginBottom: 15
   },
   sectionTitle: { fontSize: 20, fontWeight: 'bold', color: '#1e40af' },
 
@@ -80,6 +95,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#f1f5f9',
   },
+  questCardActive: {
+    borderColor: '#3b82f6',
+    backgroundColor: '#eff6ff', // Light blue background for active
+  },
   descriptionContainer: {
     width: '100%',
     paddingHorizontal: 5,
@@ -93,19 +112,25 @@ const styles = StyleSheet.create({
   },
   iconBox: { width: 45, height: 45, borderRadius: 12, backgroundColor: '#eff6ff', justifyContent: 'center', alignItems: 'center' },
   iconBoxDone: { backgroundColor: '#ecfdf5' },
+  iconBoxActive: { backgroundColor: 'white' },
   questInfo: { flex: 1, marginLeft: 15 },
   questTitle: { fontSize: 15, fontWeight: 'bold', color: '#1e293b' },
+  questTitleActive: { color: '#1e40af' },
   questDesc: { fontSize: 12, color: '#64748b', marginTop: 2 },
-  questAction: { 
-    width: 50, 
-    height: 35, 
-    backgroundColor: '#3b82f6', 
-    borderRadius: 10, 
-    justifyContent: 'center', 
-    alignItems: 'center' 
+  questAction: {
+    width: 65,
+    height: 35,
+    backgroundColor: '#3b82f6',
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  questActionActive: {
+    backgroundColor: '#1e40af',
   },
   questActionDone: { backgroundColor: '#10b981' },
   pointsAdd: { color: 'white', fontWeight: 'bold', fontSize: 12 },
+  activeLabel: { color: 'white', fontWeight: 'bold', fontSize: 11, textTransform: 'uppercase' },
 });
 
 export default Quests;

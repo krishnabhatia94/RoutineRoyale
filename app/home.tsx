@@ -3,7 +3,7 @@ import { useTaskStatus } from '@/context/TaskStatusContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View, Alert } from 'react-native';
+import { Alert, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const Home = () => {
   const router = useRouter();
@@ -18,13 +18,12 @@ const Home = () => {
   // Mock data for announcements
   const announcements = [
     { id: 1, title: 'Season 1 Begins!', body: 'First set of challenges and rewards are now live.', icon: 'trophy' },
-    { id: 2, title: 'Double Points Weekend', body: 'Earn 2x points on all morning routines.', icon: 'flash' }
   ];
 
   const handleClockIn = () => {
     if (tasks.length === 0) {
       Alert.alert(
-        "Routine Empty!", 
+        "Routine Empty!",
         "You need to add at least one task to your routine before you can Clock In.",
         [{ text: "Edit Task List", onPress: () => router.push('/task_list') }, { text: "OK" }]
       );
@@ -44,7 +43,7 @@ const Home = () => {
 
           <TouchableOpacity
             style={[
-              styles.clockBtn, 
+              styles.clockBtn,
               isClockedIn && styles.clockBtnSuccess,
               tasks.length === 0 && { opacity: 0.6 }
             ]}
