@@ -1,8 +1,10 @@
+import { useProfile } from '@/context/ProfileContext';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const Leaderboards = () => {
+  const { isDarkMode } = useProfile();
   const friends = [
     { id: '1', name: 'Piyush Mehta', points: 2840, rank: 1, trend: 'up' },
     { id: '2', name: 'Alex Rivers', points: 2450, rank: 2, trend: 'down' },
@@ -18,61 +20,61 @@ const Leaderboards = () => {
   ];
 
   const renderRow = (item: { id: any; name: any; points: any; rank: any; trend?: any; }, isGlobal = false) => (
-    <View key={item.id} style={styles.row}>
+    <View key={item.id} style={[styles.row, isDarkMode && styles.rowDark]}>
       <View style={styles.rankContainer}>
         {isGlobal && item.rank <= 3 ? (
           <Ionicons 
             name="trophy" 
             size={18} 
-            color={item.rank === 1 ? "#fbbf24" : item.rank === 2 ? "#94a3b8" : "#92400e"} 
+            color={item.rank === 1 ? "#fbbf24" : item.rank === 2 ? (isDarkMode ? "#94a3b8" : "#94a3b8") : "#92400e"} 
           />
         ) : (
-          <Text style={styles.rankText}>{item.rank}</Text>
+          <Text style={[styles.rankText, isDarkMode && styles.rankTextDark]}>{item.rank}</Text>
         )}
       </View>
       
-      <View style={styles.avatar}>
+      <View style={[styles.avatar, isDarkMode && styles.avatarDark]}>
         <Text style={styles.avatarText}>{item.name.charAt(0)}</Text>
       </View>
 
       <View style={styles.info}>
-        <Text style={styles.nameText}>{item.name}</Text>
+        <Text style={[styles.nameText, isDarkMode && styles.nameTextDark]}>{item.name}</Text>
         {!isGlobal && (
-          <Text style={styles.trendText}>
+          <Text style={[styles.trendText, isDarkMode && styles.trendTextDark]}>
             {item.trend === 'up' ? '🔥 Climbing' : '😴 Resting'}
           </Text>
         )}
       </View>
 
       <View style={styles.pointsContainer}>
-        <Text style={styles.pointsText}>{item.points.toLocaleString()}</Text>
-        <Text style={styles.ptsLabel}>pts</Text>
+        <Text style={[styles.pointsText, isDarkMode && styles.pointsTextDark]}>{item.points.toLocaleString()}</Text>
+        <Text style={[styles.ptsLabel, isDarkMode && styles.ptsLabelDark]}>pts</Text>
       </View>
     </View>
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, isDarkMode && styles.safeAreaDark]}>
       <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         
         {/* Friends Section */}
         <View style={styles.sectionHeader}>
-          <Ionicons name="people" size={20} color="#1e40af" />
-          <Text style={styles.sectionTitle}>Friends League</Text>
+          <Ionicons name="people" size={20} color={isDarkMode ? "#38bdf8" : "#1e40af"} />
+          <Text style={[styles.sectionTitle, isDarkMode && styles.sectionTitleDark]}>Friends League</Text>
         </View>
-        <View style={styles.card}>
+        <View style={[styles.card, isDarkMode && styles.cardDark]}>
           {friends.map(f => renderRow(f))}
         </View>
 
         {/* Global Section */}
         <View style={[styles.sectionHeader, { marginTop: 32 }]}>
-          <Ionicons name="earth" size={20} color="#1e40af" />
-          <Text style={styles.sectionTitle}>Global Champions</Text>
+          <Ionicons name="earth" size={20} color={isDarkMode ? "#38bdf8" : "#1e40af"} />
+          <Text style={[styles.sectionTitle, isDarkMode && styles.sectionTitleDark]}>Global Champions</Text>
         </View>
-        <View style={styles.card}>
+        <View style={[styles.card, isDarkMode && styles.cardDark]}>
           {global.map(g => renderRow(g, true))}
           <TouchableOpacity style={styles.loadMore}>
-            <Text style={styles.loadMoreText}>View Full Rankings</Text>
+            <Text style={[styles.loadMoreText, isDarkMode && styles.loadMoreTextDark]}>View Full Rankings</Text>
           </TouchableOpacity>
         </View>
 
@@ -83,6 +85,7 @@ const Leaderboards = () => {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#f8fafc' },
+  safeAreaDark: { backgroundColor: '#0f172a' },
   scrollContainer: { padding: 20 },
   sectionHeader: { 
     flexDirection: 'row', 
@@ -91,6 +94,7 @@ const styles = StyleSheet.create({
     gap: 8 
   },
   sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#1e40af' },
+  sectionTitleDark: { color: '#38bdf8' },
   card: {
     backgroundColor: 'white',
     borderRadius: 20,
@@ -102,6 +106,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 8,
   },
+  cardDark: {
+    backgroundColor: '#1e293b',
+    shadowOpacity: 0.2,
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -110,8 +118,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#f1f5f9',
   },
+  rowDark: {
+    borderBottomColor: '#334155',
+  },
   rankContainer: { width: 30, alignItems: 'center' },
   rankText: { fontWeight: 'bold', color: '#64748b', fontSize: 14 },
+  rankTextDark: { color: '#94a3b8' },
   avatar: {
     width: 36,
     height: 36,
@@ -121,13 +133,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginHorizontal: 12,
   },
+  avatarDark: {
+    backgroundColor: '#38bdf8',
+  },
   avatarText: { color: 'white', fontWeight: 'bold', fontSize: 14 },
   info: { flex: 1 },
   nameText: { fontWeight: '600', color: '#1e293b', fontSize: 15 },
+  nameTextDark: { color: '#f8fafc' },
   trendText: { fontSize: 11, color: '#64748b', marginTop: 2 },
+  trendTextDark: { color: '#94a3b8' },
   pointsContainer: { alignItems: 'flex-end' },
   pointsText: { fontWeight: 'bold', color: '#1e40af', fontSize: 15 },
+  pointsTextDark: { color: '#38bdf8' },
   ptsLabel: { fontSize: 9, color: '#94a3b8', textTransform: 'uppercase' },
+  ptsLabelDark: { color: '#64748b' },
   loadMore: {
     padding: 15,
     alignItems: 'center',
@@ -136,7 +155,8 @@ const styles = StyleSheet.create({
     color: '#3b82f6',
     fontWeight: 'bold',
     fontSize: 13,
-  }
+  },
+  loadMoreTextDark: { color: '#38bdf8' },
 });
 
 export default Leaderboards;

@@ -14,7 +14,7 @@ const Home = () => {
 
   const { resetSession } = useTaskStatus();
   const { tasks } = useTasks();
-  const { currentBracket, totalPoints } = useProfile();
+  const { currentBracket, totalPoints, isDarkMode } = useProfile();
 
   const playersLeft = currentBracket.length === 0 ? 10 : currentBracket.length + 1;
 
@@ -37,11 +37,11 @@ const Home = () => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, isDarkMode && styles.safeAreaDark]}>
       <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
 
         {/* Portal Card */}
-        <View style={styles.portalCard}>
+        <View style={[styles.portalCard, isDarkMode && styles.portalCardDark]}>
           <Text style={styles.portalHeadline}>Ready to start your routine?</Text>
 
           <TouchableOpacity
@@ -57,8 +57,8 @@ const Home = () => {
             <Text style={styles.btnText}>{status}</Text>
           </TouchableOpacity>
 
-          <View style={styles.statusBadge}>
-            <Text style={styles.statusText}>
+          <View style={[styles.statusBadge, isDarkMode && styles.statusBadgeDark]}>
+            <Text style={[styles.statusText, isDarkMode && styles.statusTextDark]}>
               {playersLeft}/10 Players Left This Royale!
             </Text>
           </View>
@@ -66,38 +66,38 @@ const Home = () => {
 
         {/* --- NEW SECTION START --- */}
         <View style={styles.dividerContainer}>
-          <View style={styles.line} />
-          <Text style={styles.dividerText}>YOUR ROUTINE</Text>
-          <View style={styles.line} />
+          <View style={[styles.line, isDarkMode && styles.lineDark]} />
+          <Text style={[styles.dividerText, isDarkMode && styles.dividerTextDark]}>YOUR ROUTINE</Text>
+          <View style={[styles.line, isDarkMode && styles.lineDark]} />
         </View>
 
         <TouchableOpacity
-          style={styles.taskEditBtn}
+          style={[styles.taskEditBtn, isDarkMode && styles.taskEditBtnDark]}
           onPress={() => router.push('/task_list')}
         >
           <View style={styles.taskEditIconBg}>
             <Ionicons name="list" size={20} color="white" />
           </View>
           <Text style={styles.taskEditBtnText}>Edit Task List</Text>
-          <Ionicons name="chevron-forward" size={18} color="#94a3b8" />
+          <Ionicons name="chevron-forward" size={18} color={isDarkMode ? "#64748b" : "#94a3b8"} />
         </TouchableOpacity>
 
         {/* Divider Section */}
         <View style={styles.dividerContainer}>
-          <View style={styles.line} />
-          <Text style={styles.dividerText}>ANNOUNCEMENTS</Text>
-          <View style={styles.line} />
+          <View style={[styles.line, isDarkMode && styles.lineDark]} />
+          <Text style={[styles.dividerText, isDarkMode && styles.dividerTextDark]}>ANNOUNCEMENTS</Text>
+          <View style={[styles.line, isDarkMode && styles.lineDark]} />
         </View>
 
         {/* Announcements List */}
         {announcements.map((item) => (
-          <View key={item.id} style={styles.announcementCard}>
-            <View style={styles.announcementIconBg}>
-              <Ionicons name={item.icon as any} size={20} color="#1e40af" />
+          <View key={item.id} style={[styles.announcementCard, isDarkMode && styles.announcementCardDark]}>
+            <View style={[styles.announcementIconBg, isDarkMode && styles.announcementIconBgDark]}>
+              <Ionicons name={item.icon as any} size={20} color={isDarkMode ? "#38bdf8" : "#1e40af"} />
             </View>
             <View style={styles.announcementContent}>
-              <Text style={styles.announcementTitle}>{item.title}</Text>
-              <Text style={styles.announcementBody}>{item.body}</Text>
+              <Text style={[styles.announcementTitle, isDarkMode && styles.announcementTitleDark]}>{item.title}</Text>
+              <Text style={[styles.announcementBody, isDarkMode && styles.announcementBodyDark]}>{item.body}</Text>
             </View>
           </View>
         ))}
@@ -109,6 +109,7 @@ const Home = () => {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#f8fafc' },
+  safeAreaDark: { backgroundColor: '#0f172a' },
   scrollContainer: { padding: 20, alignItems: 'center' },
 
   // Portal Card Styles
@@ -120,6 +121,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 20
   },
+  portalCardDark: { backgroundColor: '#1e293b' },
   portalHeadline: { color: 'white', fontSize: 20, marginBottom: 30, fontWeight: '600' },
   clockBtn: {
     backgroundColor: '#3b82f6',
@@ -132,7 +134,9 @@ const styles = StyleSheet.create({
   clockBtnSuccess: { backgroundColor: '#10b981' },
   btnText: { color: 'white', fontWeight: 'bold', marginLeft: 10 },
   statusBadge: { marginTop: 30, backgroundColor: 'rgba(255,255,255,0.1)', padding: 10, borderRadius: 10 },
+  statusBadgeDark: { backgroundColor: 'rgba(56, 189, 248, 0.1)' },
   statusText: { color: 'rgba(255,255,255,0.8)', fontSize: 12 },
+  statusTextDark: { color: '#38bdf8' },
 
   // Divider Styles
   dividerContainer: {
@@ -143,6 +147,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   line: { flex: 1, height: 1, backgroundColor: '#e2e8f0' },
+  lineDark: { backgroundColor: '#334155' },
   dividerText: {
     marginHorizontal: 15,
     color: '#94a3b8',
@@ -150,6 +155,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
     fontSize: 11
   },
+  dividerTextDark: { color: '#64748b' },
 
   // New Task Edit Button Styles
   taskEditBtn: {
@@ -165,6 +171,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 8,
   },
+  taskEditBtnDark: { backgroundColor: '#1e293b' },
   taskEditIconBg: {
     width: 36,
     height: 36,
@@ -196,6 +203,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 8,
   },
+  announcementCardDark: { backgroundColor: '#1e293b' },
   announcementIconBg: {
     width: 40,
     height: 40,
@@ -205,9 +213,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 15,
   },
+  announcementIconBgDark: { backgroundColor: '#334155' },
   announcementContent: { flex: 1 },
   announcementTitle: { fontWeight: 'bold', color: '#1e293b', fontSize: 15 },
+  announcementTitleDark: { color: '#f8fafc' },
   announcementBody: { color: '#64748b', fontSize: 13, marginTop: 2 },
+  announcementBodyDark: { color: '#94a3b8' },
 });
 
 export default Home;

@@ -33,35 +33,35 @@ const Profile = () => {
   };
 
   const renderInfoRow = (label: string, value: string | number) => (
-    <View style={styles.infoRow}>
-      <Text style={styles.infoLabel}>{label}</Text>
-      <Text style={styles.infoValue}>{value}</Text>
+    <View style={[styles.infoRow, isDarkMode && styles.infoRowDark]}>
+      <Text style={[styles.infoLabel, isDarkMode && styles.infoLabelDark]}>{label}</Text>
+      <Text style={[styles.infoValue, isDarkMode && styles.infoValueDark]}>{value}</Text>
     </View>
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, isDarkMode && styles.safeAreaDark]}>
       {/* Top Left Theme Toggle - Now outside ScrollView for stable layout */}
       <View style={styles.togglePositioner}>
         <TouchableOpacity 
-          style={styles.verticalToggle} 
+          style={[styles.verticalToggle, isDarkMode && styles.verticalToggleDark]} 
           onPress={toggleDarkMode}
           activeOpacity={0.8}
         >
           <View style={styles.toggleTrack}>
             {/* The Knob */}
-            <View style={[styles.toggleKnob, isDarkMode ? styles.knobDown : styles.knobUp]}>
+            <View style={[styles.toggleKnob, isDarkMode ? styles.knobDown : styles.knobUp, isDarkMode && styles.toggleKnobDark]}>
               <Ionicons 
                 name={isDarkMode ? "moon" : "sunny"} 
                 size={14} 
-                color={isDarkMode ? "#3b82f6" : "#f59e0b"} 
+                color={isDarkMode ? "#38bdf8" : "#f59e0b"} 
               />
             </View>
             
             {/* Empty track space for icons */}
             <View style={styles.trackIconSpace}>
-              <Ionicons name="sunny" size={10} color={isDarkMode ? "#94a3b8" : "transparent"} />
-              <Ionicons name="moon" size={10} color={isDarkMode ? "transparent" : "#94a3b8"} />
+              <Ionicons name="sunny" size={10} color={isDarkMode ? "#64748b" : "transparent"} />
+              <Ionicons name="moon" size={10} color={isDarkMode ? "transparent" : "#64748b"} />
             </View>
           </View>
         </TouchableOpacity>
@@ -71,22 +71,22 @@ const Profile = () => {
         
         {/* Avatar Section */}
         <View style={styles.avatarContainer}>
-          <View style={styles.imageWrapper}>
+          <View style={[styles.imageWrapper, isDarkMode && styles.imageWrapperDark]}>
             <View style={styles.placeholderImage}>
-              <Ionicons name="person" size={60} color="#1e40af" />
+              <Ionicons name="person" size={60} color={isDarkMode ? "#38bdf8" : "#1e40af"} />
             </View>
             <TouchableOpacity 
-              style={styles.editButton}
+              style={[styles.editButton, isDarkMode && styles.editButtonDark]}
               onPress={() => router.push('/edit_avatar')}
             >
               <Ionicons name="pencil" size={16} color="white" />
             </TouchableOpacity>
           </View>
-          <Text style={styles.userTitle}>{username}</Text>
+          <Text style={[styles.userTitle, isDarkMode && styles.userTitleDark]}>{username}</Text>
         </View>
 
         {/* Account Info Card */}
-        <View style={styles.card}>
+        <View style={[styles.card, isDarkMode && styles.cardDark]}>
           {renderInfoRow("Name", name)}
           {renderInfoRow("Username", username)}
           {renderInfoRow("Birthday", dob)}
@@ -96,16 +96,15 @@ const Profile = () => {
 
         {/* Divider & Stats Header */}
         <View style={styles.dividerContainer}>
-          <View style={styles.line} />
-          <Text style={styles.dividerText}>STATS</Text>
-          <View style={styles.line} />
+          <View style={[styles.line, isDarkMode && styles.lineDark]} />
+          <Text style={[styles.dividerText, isDarkMode && styles.dividerTextDark]}>STATS</Text>
+          <View style={[styles.line, isDarkMode && styles.lineDark]} />
         </View>
 
         {/* Stats Card */}
-        <View style={styles.card}>
+        <View style={[styles.card, isDarkMode && styles.cardDark]}>
           {/* Now using the live totalPoints from context */}
           {renderInfoRow("Total Points", totalPoints.toLocaleString())}
-          {renderInfoRow("Current Streak", "12 Days")}
           {renderInfoRow("Challenges Won", "8")}
           {renderInfoRow("Global Rank", "#42")}
         </View>
@@ -127,6 +126,7 @@ const Profile = () => {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#f8fafc' },
+  safeAreaDark: { backgroundColor: '#0f172a' },
   scrollContainer: { padding: 20, alignItems: 'center' },
   
   // Avatar Styles
@@ -147,6 +147,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
   },
+  imageWrapperDark: { 
+    backgroundColor: '#1e293b',
+    borderColor: '#334155',
+  },
   placeholderImage: { width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' },
   editButton: {
     position: 'absolute',
@@ -161,7 +165,9 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: 'white',
   },
+  editButtonDark: { borderColor: '#1e293b' },
   userTitle: { marginTop: 15, fontSize: 16, fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase', letterSpacing: 1 },
+  userTitleDark: { color: '#94a3b8' },
 
   // Card Styles
   card: {
@@ -176,6 +182,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 10,
   },
+  cardDark: { backgroundColor: '#1e293b' },
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -184,8 +191,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#f1f5f9',
   },
+  infoRowDark: { borderBottomColor: '#334155' },
   infoLabel: { color: '#64748b', fontWeight: '600', fontSize: 15 },
+  infoLabelDark: { color: '#94a3b8' },
   infoValue: { color: '#1e40af', fontWeight: 'bold', fontSize: 15 },
+  infoValueDark: { color: '#38bdf8' },
 
   // Divider Styles
   dividerContainer: {
@@ -195,7 +205,9 @@ const styles = StyleSheet.create({
     marginVertical: 15,
   },
   line: { flex: 1, height: 1, backgroundColor: '#e2e8f0' },
+  lineDark: { backgroundColor: '#334155' },
   dividerText: { marginHorizontal: 15, color: '#94a3b8', fontWeight: 'bold', letterSpacing: 2, fontSize: 12 },
+  dividerTextDark: { color: '#64748b' },
 
   // Reset Button (Red box, white text)
   resetBtn: {
@@ -236,6 +248,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
+  verticalToggleDark: { backgroundColor: '#334155' },
   toggleTrack: {
     flex: 1,
     width: '100%',
@@ -259,6 +272,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 2,
   },
+  toggleKnobDark: { backgroundColor: '#1e293b' },
   knobUp: { top: 2 },
   knobDown: { bottom: 2 },
   trackIconSpace: {

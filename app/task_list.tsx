@@ -1,5 +1,5 @@
 import { useProfile } from '@/context/ProfileContext';
-import { useTasks } from '@/context/TaskListContext';
+import { useTasks, Task } from '@/context/TaskListContext';
 import { Ionicons } from '@expo/vector-icons';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import * as Haptics from 'expo-haptics';
@@ -35,7 +35,7 @@ const Task_List = () => {
   const [isMagicFilling, setIsMagicFilling] = useState<number | null>(null);
 
   const { tasks, addTask, updateTask, deleteTask, setTasks } = useTasks();
-  const { activeQuest, setActiveQuest } = useProfile();
+  const { activeQuest, setActiveQuest, isDarkMode } = useProfile();
 
   // Combine tasks with active quest for display
   const displayTasks = React.useMemo(() => {
@@ -256,8 +256,13 @@ const Task_List = () => {
   };
 
   const renderItem = React.useCallback(({ item, drag, isActive }: RenderItemParams<any>) => {
+    const isExpanded = expandedId === item.id;
     return (
-      <View style={[styles.card, isActive && { backgroundColor: '#f1f5f9' }]}>
+      <View style={[
+        styles.card, 
+        isDarkMode && styles.cardDark,
+        isActive && { backgroundColor: isDarkMode ? '#334155' : '#f1f5f9' }
+      ]}>
         <View style={styles.cardHeaderRow}>
           {/* Rearrange Handle */}
           <TouchableOpacity
@@ -268,7 +273,7 @@ const Task_List = () => {
             delayLongPress={300}
             style={styles.dragHandle}
           >
-            <Ionicons name="reorder-three-outline" size={24} color="#94a3b8" />
+            <Ionicons name="reorder-three-outline" size={24} color={isDarkMode ? "#64748b" : "#94a3b8"} />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -276,44 +281,55 @@ const Task_List = () => {
             onPress={() => toggleExpand(item.id)}
             activeOpacity={0.7}
           >
-            <View style={[styles.iconCircle, item.isQuest && styles.questIconCircle]}>
-              <Ionicons name={item.icon as any} size={20} color={item.isQuest ? "#f59e0b" : "#1e40af"} />
+            <View style={[
+              styles.iconCircle, 
+              isDarkMode && styles.iconCircleDark,
+              item.isQuest && (isDarkMode ? styles.questIconCircleDark : styles.questIconCircle)
+            ]}>
+              <Ionicons name={item.icon as any} size={20} color={item.isQuest ? "#f59e0b" : (isDarkMode ? "#38bdf8" : "#1e40af")} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.taskNamePreview}>{item.name || "New Task"}</Text>
-              <Text style={styles.taskLengthPreview}>{item.length || "0 mins"}</Text>
+              <Text style={[styles.taskNamePreview, isDarkMode && styles.taskNamePreviewDark]}>
+                {item.name || "New Task"}
+              </Text>
+              <Text style={[styles.taskLengthPreview, isDarkMode && styles.taskLengthPreviewDark]}>
+                {item.length || "0 mins"}
+              </Text>
             </View>
             <Ionicons
-              name={expandedId === item.id ? "chevron-up" : "chevron-down"}
+              name={isExpanded ? "chevron-up" : "chevron-down"}
               size={20}
-              color="#94a3b8"
+              color={isDarkMode ? "#64748b" : "#94a3b8"}
             />
           </TouchableOpacity>
         </View>
 
-        {expandedId === item.id && (
-          <View style={styles.expandedSection}>
+        {isExpanded && (
+          <View style={[styles.expandedSection, isDarkMode && styles.expandedSectionDark]}>
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Task Name</Text>
+              <Text style={[styles.label, isDarkMode && styles.labelDark]}>Task Name</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, isDarkMode && styles.inputDark]}
                 value={item.name}
                 onChangeText={(val) => !item.isQuest && updateTask(item.id, 'name', val)}
                 placeholder="e.g. Morning Meditation"
+                placeholderTextColor={isDarkMode ? "#64748b" : "#94a3b8"}
                 editable={!item.isQuest}
               />
             </View>
 
             <View style={styles.inputGroup}>
               <View style={styles.labelRow}>
-                <Text style={styles.label}>Length of Task</Text>
+                <Text style={[styles.label, isDarkMode && styles.labelDark]}>Length of Task</Text>
                 {item.isQuest && (
-                  <Text style={styles.questDurationLabel}>Quest Points: {item.points} pts</Text>
+                  <Text style={[styles.questDurationLabel, isDarkMode && styles.questDurationLabelDark]}>
+                    Quest Points: {item.points} pts
+                  </Text>
                 )}
               </View>
               <View style={styles.lengthInputRow}>
                 <TextInput
-                  style={[styles.input, styles.numericInput]}
+                  style={[styles.input, isDarkMode && styles.inputDark, styles.numericInput]}
                   value={item.isQuest && item.length === 'N/A' ? 'N/A' : parseLength(item.length).num}
                   onChangeText={(val) => {
                     if (item.isQuest) return;
@@ -321,17 +337,18 @@ const Task_List = () => {
                     updateTask(item.id, 'length', `${val} ${unit}`);
                   }}
                   placeholder="e.g. 10"
+                  placeholderTextColor={isDarkMode ? "#64748b" : "#94a3b8"}
                   keyboardType="numeric"
                   editable={!item.isQuest}
                 />
                 {!item.isQuest ? (
-                  <View style={styles.unitPicker}>
+                  <View style={[styles.unitPicker, isDarkMode && styles.unitPickerDark]}>
                     {unitOptions.map((unit) => (
                       <TouchableOpacity
                         key={unit}
                         style={[
                           styles.unitOption,
-                          parseLength(item.length).unit === unit && styles.unitOptionSelected
+                          parseLength(item.length).unit === unit && (isDarkMode ? styles.unitOptionSelectedDark : styles.unitOptionSelected)
                         ]}
                         onPress={() => {
                           const { num } = parseLength(item.length);
@@ -340,6 +357,7 @@ const Task_List = () => {
                       >
                         <Text style={[
                           styles.unitOptionText,
+                          isDarkMode && styles.unitOptionTextDark,
                           parseLength(item.length).unit === unit && styles.unitOptionTextSelected
                         ]}>
                           {unit.charAt(0).toUpperCase() + unit.slice(1)}
@@ -349,8 +367,8 @@ const Task_List = () => {
                   </View>
                 ) : (
                   item.isQuest && item.length && !item.length.includes('pts') && item.length !== 'N/A' ? (
-                    <View style={styles.questUnitDisplay}>
-                      <Text style={styles.questUnitText}>
+                    <View style={[styles.questUnitDisplay, isDarkMode && styles.questUnitDisplayDark]}>
+                      <Text style={[styles.questUnitText, isDarkMode && styles.questUnitTextDark]}>
                         {parseLength(item.length).unit.charAt(0).toUpperCase() + parseLength(item.length).unit.slice(1)}
                       </Text>
                     </View>
@@ -360,26 +378,28 @@ const Task_List = () => {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Description</Text>
+              <Text style={[styles.label, isDarkMode && styles.labelDark]}>Description</Text>
               <TextInput
-                style={[styles.input, styles.textArea]}
+                style={[styles.input, isDarkMode && styles.inputDark, styles.textArea]}
                 value={item.description}
                 onChangeText={(val) => !item.isQuest && updateTask(item.id, 'description', val)}
                 multiline
                 placeholder="What needs to be done?"
+                placeholderTextColor={isDarkMode ? "#64748b" : "#94a3b8"}
                 editable={!item.isQuest}
               />
             </View>
 
             {!item.isQuest && (
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Choose Icon</Text>
+                <Text style={[styles.label, isDarkMode && styles.labelDark]}>Choose Icon</Text>
                 <View style={styles.iconPicker}>
                   {iconOptions.map((iconName) => (
                     <TouchableOpacity
                       key={iconName}
                       style={[
                         styles.iconOption,
+                        isDarkMode && styles.iconOptionDark,
                         item.icon === iconName && styles.iconOptionSelected
                       ]}
                       onPress={() => updateTask(item.id, 'icon', iconName)}
@@ -387,7 +407,7 @@ const Task_List = () => {
                       <Ionicons
                         name={iconName as any}
                         size={20}
-                        color={item.icon === iconName ? "white" : "#64748b"}
+                        color={item.icon === iconName ? "white" : (isDarkMode ? "#94a3b8" : "#64748b")}
                       />
                     </TouchableOpacity>
                   ))}
@@ -397,7 +417,7 @@ const Task_List = () => {
                   disabled={isMagicFilling === item.id}
                   style={styles.magicFillBtn}
                 >
-                  <Text style={styles.magicFillText}>
+                  <Text style={[styles.magicFillText, isDarkMode && styles.magicFillTextDark]}>
                     {isMagicFilling === item.id ? "Working..." : "Magic Fill..."}
                   </Text>
                 </TouchableOpacity>
@@ -406,14 +426,25 @@ const Task_List = () => {
 
             {item.isQuest ? (
               <TouchableOpacity
-                style={[styles.deleteBtn, styles.deselectQuestBtn]}
+                style={[
+                  styles.deleteBtn, 
+                  isDarkMode && styles.deleteBtnDark,
+                  styles.deselectQuestBtn,
+                  isDarkMode && styles.deselectQuestBtnDark
+                ]}
                 onPress={() => setActiveQuest(null)}>
                 <Ionicons name="close-circle-outline" size={18} color="#f59e0b" />
-                <Text style={[styles.deleteBtnText, styles.deselectQuestBtnText]}>Deselect Quest</Text>
+                <Text style={[
+                  styles.deleteBtnText, 
+                  styles.deselectQuestBtnText,
+                  isDarkMode && styles.deselectQuestBtnTextDark
+                ]}>
+                  Deselect Quest
+                </Text>
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
-                style={styles.deleteBtn}
+                style={[styles.deleteBtn, isDarkMode && styles.deleteBtnDark]}
                 onPress={() => deleteTask(item.id)}>
                 <Ionicons name="trash-outline" size={18} color="#ef4444" />
                 <Text style={styles.deleteBtnText}>Delete Task</Text>
@@ -423,17 +454,17 @@ const Task_List = () => {
         )}
       </View>
     );
-  }, [expandedId, tasks]);
+  }, [expandedId, tasks, isDarkMode]);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, isDarkMode && styles.safeAreaDark]}>
       <DraggableFlatList
         containerStyle={{ flex: 1 }}
         data={displayTasks}
         onDragEnd={({ data }: { data: any[] }) => {
           // Filter out the quest before saving order
           const updatedTasks = data.filter(t => !t.isQuest);
-          setTasks(updatedTasks);
+          setTasks(updatedTasks as Task[]);
         }}
         keyExtractor={(item: any) => item.id.toString()}
         renderItem={renderItem}
@@ -443,30 +474,40 @@ const Task_List = () => {
           <>
             <View style={styles.navRow}>
               <TouchableOpacity style={styles.navBtn} onPress={handleBack}>
-                <Ionicons name="chevron-back" size={24} color="#3b82f6" />
-                <Text style={styles.navBtnText}>Back</Text>
+                <Ionicons name="chevron-back" size={24} color={isDarkMode ? "#38bdf8" : "#3b82f6"} />
+                <Text style={[styles.navBtnText, isDarkMode && styles.navBtnTextDark]}>Back</Text>
               </TouchableOpacity>
 
               <TouchableOpacity onPress={handleSave} disabled={isSaving || !hasChanges}>
-                <Text style={[styles.saveText, (!hasChanges || isSaving) && { opacity: 0.5 }]}>
+                <Text style={[
+                  styles.saveText, 
+                  isDarkMode && styles.saveTextDark,
+                  (!hasChanges || isSaving) && { opacity: 0.5 }
+                ]}>
                   {isSaving ? "Saving..." : (hasChanges ? "Save" : "Saved")}
                 </Text>
               </TouchableOpacity>
             </View>
 
             <View style={styles.titleContainer}>
-              <Text style={styles.pageTitle}>Your Personal Task List</Text>
+              <Text style={[styles.pageTitle, isDarkMode && styles.pageTitleDark]}>Your Personal Task List</Text>
             </View>
           </>
         }
         ListFooterComponent={
           <>
-            <TouchableOpacity style={styles.addBtn} onPress={addTask}>
-              <Ionicons name="add" size={24} color="#3b82f6" />
-              <Text style={styles.addBtnText}>Add New Task</Text>
+            <TouchableOpacity 
+              style={[styles.addBtn, isDarkMode && styles.addBtnDark]} 
+              onPress={addTask}
+            >
+              <Ionicons name="add" size={24} color={isDarkMode ? "#38bdf8" : "#3b82f6"} />
+              <Text style={[styles.addBtnText, isDarkMode && styles.addBtnTextDark]}>Add New Task</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={[styles.addBtn, styles.clearBtn]} onPress={handleClearAll}>
+            <TouchableOpacity 
+              style={[styles.addBtn, styles.clearBtn, isDarkMode && styles.addBtnDark, isDarkMode && styles.clearBtnDark]} 
+              onPress={handleClearAll}
+            >
               <Ionicons name="trash-outline" size={20} color="#ef4444" />
               <Text style={[styles.addBtnText, styles.clearBtnText]}>Clear All Tasks In This Routine</Text>
             </TouchableOpacity>
@@ -478,13 +519,13 @@ const Task_List = () => {
       {/* Gemini AI Floating Bubble & Input */}
       <View style={styles.aiContainer}>
         {isAiModalVisible && (
-          <View style={styles.aiOverlay}>
+          <View style={[styles.aiOverlay, isDarkMode && styles.aiOverlayDark]}>
             <TextInput
-              style={styles.aiInput}
+              style={[styles.aiInput, isDarkMode && styles.aiInputDark]}
               value={aiPrompt}
               onChangeText={setAiPrompt}
               placeholder="Type the routine you want to generate..."
-              placeholderTextColor="#94a3b8"
+              placeholderTextColor={isDarkMode ? "#64748b" : "#94a3b8"}
               multiline
             />
             <TouchableOpacity
@@ -505,7 +546,11 @@ const Task_List = () => {
         )}
 
         <TouchableOpacity
-          style={[styles.aiFab, isAiModalVisible && styles.aiFabActive]}
+          style={[
+            styles.aiFab, 
+            isAiModalVisible && styles.aiFabActive,
+            isDarkMode && !isAiModalVisible && styles.aiFabDark
+          ]}
           onPress={() => setIsAiModalVisible(!isAiModalVisible)}
           activeOpacity={0.8}
         >
@@ -518,6 +563,7 @@ const Task_List = () => {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#f8fafc' },
+  safeAreaDark: { backgroundColor: '#0f172a' },
   scrollContainer: { padding: 20, flexGrow: 1, paddingBottom: 50 },
 
   // Header Styles
@@ -529,10 +575,13 @@ const styles = StyleSheet.create({
   },
   navBtn: { flexDirection: 'row', alignItems: 'center', marginLeft: -5 },
   navBtnText: { color: '#3b82f6', fontSize: 17, fontWeight: '500' },
+  navBtnTextDark: { color: '#38bdf8' },
   saveText: { color: '#3b82f6', fontWeight: 'bold', fontSize: 17 },
+  saveTextDark: { color: '#38bdf8' },
 
   titleContainer: { alignItems: 'center', marginBottom: 25 },
   pageTitle: { fontSize: 22, fontWeight: 'bold', color: '#1e293b' },
+  pageTitleDark: { color: '#f8fafc' },
 
   // Card Styles
   card: {
@@ -547,6 +596,10 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 5,
+  },
+  cardDark: {
+    backgroundColor: '#1e293b',
+    borderColor: '#334155',
   },
   cardHeaderRow: {
     flexDirection: 'row',
@@ -575,14 +628,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 15,
   },
+  iconCircleDark: {
+    backgroundColor: '#334155',
+  },
   taskNamePreview: { fontSize: 16, fontWeight: 'bold', color: '#1e293b' },
+  taskNamePreviewDark: { color: '#f8fafc' },
   taskLengthPreview: { fontSize: 13, color: '#64748b', marginTop: 2 },
+  taskLengthPreviewDark: { color: '#94a3b8' },
 
   expandedSection: {
     padding: 18,
     paddingTop: 0,
     borderTopWidth: 1,
     borderTopColor: '#f1f5f9',
+  },
+  expandedSectionDark: {
+    borderTopColor: '#334155',
   },
   deleteBtn: {
     flexDirection: 'row',
@@ -595,6 +656,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#fee2e2',
   },
+  deleteBtnDark: {
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderColor: 'rgba(239, 68, 68, 0.2)',
+  },
   deleteBtnText: {
     color: '#ef4444',
     fontWeight: 'bold',
@@ -603,6 +668,7 @@ const styles = StyleSheet.create({
   },
   inputGroup: { marginTop: 15 },
   label: { fontSize: 12, fontWeight: 'bold', color: '#94a3b8', marginBottom: 6, textTransform: 'uppercase' },
+  labelDark: { color: '#64748b' },
   labelRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -615,6 +681,7 @@ const styles = StyleSheet.create({
     color: '#3b82f6',
     textTransform: 'uppercase',
   },
+  questDurationLabelDark: { color: '#38bdf8' },
   input: {
     backgroundColor: '#f8fafc',
     borderWidth: 1,
@@ -623,6 +690,11 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 15,
     color: '#1e293b',
+  },
+  inputDark: {
+    backgroundColor: '#0f172a',
+    borderColor: '#334155',
+    color: '#f8fafc',
   },
   textArea: { height: 80, textAlignVertical: 'top' },
 
@@ -643,6 +715,9 @@ const styles = StyleSheet.create({
     padding: 4,
     flex: 2,
   },
+  unitPickerDark: {
+    backgroundColor: '#0f172a',
+  },
   unitOption: {
     flex: 1,
     paddingVertical: 8,
@@ -657,10 +732,16 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
   },
+  unitOptionSelectedDark: {
+    backgroundColor: '#334155',
+  },
   unitOptionText: {
     fontSize: 12,
     fontWeight: '600',
     color: '#64748b',
+  },
+  unitOptionTextDark: {
+    color: '#94a3b8',
   },
   unitOptionTextSelected: {
     color: '#3b82f6',
@@ -671,6 +752,7 @@ const styles = StyleSheet.create({
     color: '#3b82f6',
     textTransform: 'uppercase',
   },
+  magicFillTextDark: { color: '#38bdf8' },
   magicFillBtn: {
     marginTop: 10,
     alignSelf: 'flex-start',
@@ -687,6 +769,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e2e8f0',
   },
+  iconOptionDark: {
+    backgroundColor: '#0f172a',
+    borderColor: '#334155',
+  },
   iconOptionSelected: { backgroundColor: '#3b82f6', borderColor: '#3b82f6' },
 
   addBtn: {
@@ -701,11 +787,20 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 30
   },
+  addBtnDark: {
+    borderColor: '#334155',
+    backgroundColor: 'transparent',
+  },
   addBtnText: { color: '#3b82f6', fontWeight: 'bold', marginLeft: 8, fontSize: 16 },
+  addBtnTextDark: { color: '#38bdf8' },
   clearBtn: {
     marginTop: 0,
     borderColor: '#fee2e2',
     backgroundColor: '#fffafa',
+  },
+  clearBtnDark: {
+    backgroundColor: 'rgba(239, 68, 68, 0.05)',
+    borderColor: 'rgba(239, 68, 68, 0.2)',
   },
   clearBtnText: {
     color: '#ef4444',
@@ -731,6 +826,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 8,
   },
+  aiFabDark: {
+    backgroundColor: '#38bdf8',
+    shadowColor: '#38bdf8',
+  },
   aiFabActive: {
     backgroundColor: '#1e293b',
     shadowColor: '#000',
@@ -738,12 +837,22 @@ const styles = StyleSheet.create({
   questIconCircle: {
     backgroundColor: '#fffbeb',
   },
+  questIconCircleDark: {
+    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+  },
   deselectQuestBtn: {
     backgroundColor: '#fffbeb',
     borderColor: '#fde68a',
   },
+  deselectQuestBtnDark: {
+    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    borderColor: 'rgba(245, 158, 11, 0.2)',
+  },
   deselectQuestBtnText: {
     color: '#f59e0b',
+  },
+  deselectQuestBtnTextDark: {
+    color: '#fbbf24',
   },
   questUnitDisplay: {
     backgroundColor: '#f1f5f9',
@@ -756,11 +865,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  questUnitDisplayDark: {
+    backgroundColor: '#0f172a',
+    borderColor: '#334155',
+  },
   questUnitText: {
     color: '#64748b',
     fontWeight: '600',
     fontSize: 14,
   },
+  questUnitTextDark: { color: '#94a3b8' },
   aiOverlay: {
     backgroundColor: 'white',
     borderRadius: 24,
@@ -775,6 +889,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 16,
   },
+  aiOverlayDark: {
+    backgroundColor: '#1e293b',
+    borderColor: '#334155',
+  },
   aiInput: {
     fontSize: 16,
     color: '#1e293b',
@@ -782,6 +900,9 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
     marginBottom: 12,
     lineHeight: 22,
+  },
+  aiInputDark: {
+    color: '#f8fafc',
   },
   aiSendBtn: {
     backgroundColor: '#3b82f6',

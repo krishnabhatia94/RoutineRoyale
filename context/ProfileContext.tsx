@@ -55,7 +55,7 @@ export const formatSeconds = (seconds: number) => {
 export const getCompetitorFromDB = (id: string) => {
   const user = USER_DB.find(u => u.id === id);
   if (user) return user;
-  
+
   // Fallback for random/old IDs using deterministic mapping
   const nameIndex = getDeterministicIndex(id, MOCK_NAMES.length);
   const iconIndex = getDeterministicIndex(id, MOCK_ICONS.length);
@@ -97,7 +97,7 @@ const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
 
 export const ProfileProvider = ({ children }: { children: ReactNode }) => {
   const [name, setName] = useState("Krishna Bhatia");
-  const [username, setUsername] = useState("Elite Competitor");
+  const [username, setUsername] = useState("KBhatia94");
   const [dob, setDob] = useState("1999-01-01");
   const [userId, setUserId] = useState("24681012");
   const [activeQuest, setActiveQuest] = useState<Quest | null>(null);
@@ -122,12 +122,12 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <ProfileContext.Provider 
-      value={{ 
-        name, 
-        username, 
-        dob, 
-        userId, 
+    <ProfileContext.Provider
+      value={{
+        name,
+        username,
+        dob,
+        userId,
         activeQuest,
         totalPoints,
         lastPointsGained,

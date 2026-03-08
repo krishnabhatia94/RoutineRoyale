@@ -57,7 +57,7 @@ const Matchmaking = () => {
   const [matches, setMatches] = useState<any[]>([]);
   const { resetSession } = useTaskStatus();
 
-  const { currentBracket, setBracket } = useProfile();
+  const { currentBracket, setBracket, isDarkMode } = useProfile();
   const hasSimulated = useRef(false);
 
   const userTotalSeconds = useMemo(() => {
@@ -153,12 +153,12 @@ const Matchmaking = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <SafeAreaView style={[styles.container, isDarkMode && styles.containerDark]}>
+      <View style={[styles.header, isDarkMode && styles.headerDark]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color="#1e40af" />
+          <Ionicons name="arrow-back" size={24} color={isDarkMode ? "#38bdf8" : "#1e40af"} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Match Found!</Text>
+        <Text style={[styles.headerTitle, isDarkMode && styles.headerTitleDark]}>Match Found!</Text>
         <View style={{ width: 24 }} />
       </View>
 
@@ -173,20 +173,25 @@ const Matchmaking = () => {
         </View>
 
         {matches.map((player, index) => (
-          <View key={player.id} style={[styles.playerRow, player.isUser && styles.userRow]}>
+          <View key={player.id} style={[
+            styles.playerRow, 
+            isDarkMode && styles.playerRowDark,
+            player.isUser && styles.userRow,
+            player.isUser && isDarkMode && styles.userRowDark
+          ]}>
             <View style={styles.rankContainer}>
-              <Text style={[styles.rankText, player.isUser && styles.userRankText]}>{index + 1}</Text>
+              <Text style={[styles.rankText, player.isUser && styles.userRankText, isDarkMode && styles.rankTextDark]}>{index + 1}</Text>
             </View>
 
-            <View style={[styles.playerIconCircle, player.isUser && styles.userIconCircle]}>
-              <Ionicons name={player.icon} size={20} color={player.isUser ? '#3b82f6' : '#64748b'} />
+            <View style={[styles.playerIconCircle, isDarkMode && styles.playerIconCircleDark, player.isUser && styles.userIconCircle, player.isUser && isDarkMode && styles.userIconCircleDark]}>
+              <Ionicons name={player.icon} size={20} color={player.isUser ? '#3b82f6' : (isDarkMode ? '#94a3b8' : '#64748b')} />
             </View>
 
             <View style={styles.playerNameContainer}>
-              <Text style={[styles.playerName, player.isUser && styles.userPlayerName]}>
+              <Text style={[styles.playerName, isDarkMode && styles.playerNameDark, player.isUser && styles.userPlayerName, player.isUser && isDarkMode && styles.userPlayerNameDark]}>
                 {player.name} {player.isUser && '(You)'}
               </Text>
-              <Text style={styles.playerTime}>{formatSeconds(player.totalSeconds)} routine</Text>
+              <Text style={[styles.playerTime, isDarkMode && styles.playerTimeDark]}>{formatSeconds(player.totalSeconds)} routine</Text>
             </View>
 
             {player.isUser && (
@@ -283,12 +288,18 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8fafc',
   },
+  containerDark: {
+    backgroundColor: '#0f172a',
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 20,
     backgroundColor: 'white',
+  },
+  headerDark: {
+    backgroundColor: '#1e293b',
   },
   backBtn: {
     padding: 8,
@@ -297,6 +308,9 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#1e40af',
+  },
+  headerTitleDark: {
+    color: '#38bdf8',
   },
   scrollContent: {
     padding: 20,
@@ -350,10 +364,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e2e8f0',
   },
+  playerRowDark: {
+    backgroundColor: '#1e293b',
+    borderColor: '#334155',
+  },
   userRow: {
     backgroundColor: '#eff6ff',
     borderColor: '#3b82f6',
     borderWidth: 2,
+  },
+  userRowDark: {
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+    borderColor: '#38bdf8',
   },
   rankContainer: {
     width: 24,
@@ -363,6 +385,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     color: '#94a3b8',
+  },
+  rankTextDark: {
+    color: '#64748b',
   },
   userRankText: {
     color: '#3b82f6',
@@ -376,8 +401,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginHorizontal: 15,
   },
+  playerIconCircleDark: {
+    backgroundColor: '#0f172a',
+  },
   userIconCircle: {
     backgroundColor: 'white',
+  },
+  userIconCircleDark: {
+    backgroundColor: '#1e293b',
   },
   playerNameContainer: {
     flex: 1,
@@ -387,13 +418,22 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#1e293b',
   },
+  playerNameDark: {
+    color: '#f8fafc',
+  },
   userPlayerName: {
     color: '#3b82f6',
+  },
+  userPlayerNameDark: {
+    color: '#38bdf8',
   },
   playerTime: {
     fontSize: 12,
     color: '#64748b',
     marginTop: 2,
+  },
+  playerTimeDark: {
+    color: '#94a3b8',
   },
   youIndicator: {
     paddingLeft: 10,

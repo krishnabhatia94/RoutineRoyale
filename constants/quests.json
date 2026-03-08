@@ -3,7 +3,7 @@
     "id": 1,
     "title": "Hydrate",
     "description": "Drink 500ml of water",
-    "points": 50,
+    "points": 5,
     "icon": "water",
     "length": "N/A"
   },
@@ -11,7 +11,7 @@
     "id": 2,
     "title": "Breathing Break",
     "description": "Take a 2 minute break to focus on breathing",
-    "points": 80,
+    "points": 5,
     "icon": "leaf",
     "length": "2 mins"
   },
@@ -19,7 +19,7 @@
     "id": 3,
     "title": "Stretch",
     "description": "Stretch for 5 minutes",
-    "points": 80,
+    "points": 10,
     "icon": "fitness",
     "length": "5 mins"
   }

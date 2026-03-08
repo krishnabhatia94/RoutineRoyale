@@ -5,7 +5,7 @@ import questsData from '../constants/quests.json';
 import { useProfile, Quest } from '../context/ProfileContext';
 
 const Quests = () => {
-  const { activeQuest, setActiveQuest } = useProfile();
+  const { activeQuest, setActiveQuest, isDarkMode } = useProfile();
   const dailyQuests = questsData as Quest[];
 
   const handleToggleQuest = (quest: Quest) => {
@@ -17,17 +17,17 @@ const Quests = () => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, isDarkMode && styles.safeAreaDark]}>
       <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
 
         {/* Daily Quests Section */}
         <View style={[styles.sectionHeader]}>
-          <Text style={styles.sectionTitle}>Daily Quests</Text>
+          <Text style={[styles.sectionTitle, isDarkMode && styles.sectionTitleDark]}>Daily Quests</Text>
         </View>
 
         {/* Quest Description Section */}
         <View style={styles.descriptionContainer}>
-          <Text style={styles.descriptionText}>
+          <Text style={[styles.descriptionText, isDarkMode && styles.descriptionTextDark]}>
             Add one or more of these tasks to your routine to earn bonus points while in routine!
           </Text>
         </View>
@@ -39,24 +39,29 @@ const Quests = () => {
               key={quest.id}
               style={[
                 styles.questCard,
+                isDarkMode && styles.questCardDark,
                 isActive && styles.questCardActive
               ]}
               onPress={() => handleToggleQuest(quest)}
               activeOpacity={0.7}
             >
-              <View style={[styles.iconBox, isActive && styles.iconBoxActive]}>
+              <View style={[
+                styles.iconBox, 
+                isDarkMode && styles.iconBoxDark,
+                isActive && styles.iconBoxActive
+              ]}>
                 <Ionicons
                   name={quest.icon as any}
                   size={22}
-                  color={isActive ? '#3b82f6' : '#1e40af'}
+                  color={isActive ? (isDarkMode ? '#38bdf8' : '#3b82f6') : (isDarkMode ? '#38bdf8' : '#1e40af')}
                 />
               </View>
               <View style={styles.questInfo}>
-                <Text style={[styles.questTitle, isActive && styles.questTitleActive]}>{quest.title}</Text>
-                <Text style={styles.questDesc}>{quest.description}</Text>
+                <Text style={[styles.questTitle, isDarkMode && styles.questTitleDark, isActive && styles.questTitleActive]}>{quest.title}</Text>
+                <Text style={[styles.questDesc, isDarkMode && styles.questDescDark]}>{quest.description}</Text>
               </View>
               <View
-                style={[styles.questAction, isActive && styles.questActionActive]}
+                style={[styles.questAction, isDarkMode && styles.questActionDark, isActive && styles.questActionActive]}
               >
                 {isActive ? (
                   <Text style={styles.activeLabel}>Active</Text>
@@ -75,6 +80,7 @@ const Quests = () => {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#f8fafc' },
+  safeAreaDark: { backgroundColor: '#0f172a' },
   scrollContainer: { padding: 20 },
   sectionHeader: {
     flexDirection: 'row',
@@ -83,6 +89,7 @@ const styles = StyleSheet.create({
     marginBottom: 15
   },
   sectionTitle: { fontSize: 20, fontWeight: 'bold', color: '#1e40af' },
+  sectionTitleDark: { color: '#38bdf8' },
 
   // Quest Card Styles
   questCard: {
@@ -94,6 +101,10 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderWidth: 1,
     borderColor: '#f1f5f9',
+  },
+  questCardDark: {
+    backgroundColor: '#1e293b',
+    borderColor: '#334155',
   },
   questCardActive: {
     borderColor: '#3b82f6',
@@ -110,13 +121,16 @@ const styles = StyleSheet.create({
     color: '#64748b', // Subtle slate gray to match your description style
     fontWeight: '400',
   },
+  descriptionTextDark: { color: '#94a3b8' },
   iconBox: { width: 45, height: 45, borderRadius: 12, backgroundColor: '#eff6ff', justifyContent: 'center', alignItems: 'center' },
-  iconBoxDone: { backgroundColor: '#ecfdf5' },
+  iconBoxDark: { backgroundColor: '#0f172a' },
   iconBoxActive: { backgroundColor: 'white' },
   questInfo: { flex: 1, marginLeft: 15 },
   questTitle: { fontSize: 15, fontWeight: 'bold', color: '#1e293b' },
+  questTitleDark: { color: '#f8fafc' },
   questTitleActive: { color: '#1e40af' },
   questDesc: { fontSize: 12, color: '#64748b', marginTop: 2 },
+  questDescDark: { color: '#94a3b8' },
   questAction: {
     width: 65,
     height: 35,
@@ -125,10 +139,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center'
   },
+  questActionDark: {
+    backgroundColor: '#38bdf8',
+  },
   questActionActive: {
     backgroundColor: '#1e40af',
   },
-  questActionDone: { backgroundColor: '#10b981' },
   pointsAdd: { color: 'white', fontWeight: 'bold', fontSize: 12 },
   activeLabel: { color: 'white', fontWeight: 'bold', fontSize: 11, textTransform: 'uppercase' },
 });

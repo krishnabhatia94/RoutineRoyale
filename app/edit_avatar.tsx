@@ -1,3 +1,4 @@
+import { useProfile } from '@/context/ProfileContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
@@ -7,6 +8,7 @@ const categories = ["Skin Tone", "Hats", "Shirts", "Pants"];
 
 const Edit_Avatar = () => {
   const router = useRouter();
+  const { isDarkMode } = useProfile();
   const [activeCategory, setActiveCategory] = useState("Skin Tone");
 
   // This would eventually hold the state of what is equipped
@@ -18,18 +20,18 @@ const Edit_Avatar = () => {
   });
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, isDarkMode && styles.safeAreaDark]}>
       
       {/* 1. Avatar Preview Area (Top) */}
-      <View style={styles.previewContainer}>
+      <View style={[styles.previewContainer, isDarkMode && styles.previewContainerDark]}>
         <View style={styles.previewPlaceholder}>
-          <Ionicons name="person" size={120} color="#cbd5e1" />
-          <Text style={styles.previewText}>Avatar Preview</Text>
+          <Ionicons name="person" size={120} color={isDarkMode ? "#38bdf8" : "#cbd5e1"} />
+          <Text style={[styles.previewText, isDarkMode && styles.previewTextDark]}>Avatar Preview</Text>
         </View>
       </View>
 
       {/* 2. Category Navigation (Center) */}
-      <View style={styles.categoryWrapper}>
+      <View style={[styles.categoryWrapper, isDarkMode && styles.categoryWrapperDark]}>
         <ScrollView 
           horizontal 
           showsHorizontalScrollIndicator={false}
@@ -40,12 +42,15 @@ const Edit_Avatar = () => {
               key={cat} 
               style={[
                 styles.categoryButton, 
-                activeCategory === cat && styles.categoryButtonActive
+                isDarkMode && styles.categoryButtonDark,
+                activeCategory === cat && styles.categoryButtonActive,
+                activeCategory === cat && isDarkMode && styles.categoryButtonActiveDark
               ]}
               onPress={() => setActiveCategory(cat)}
             >
               <Text style={[
                 styles.categoryButtonText,
+                isDarkMode && styles.categoryButtonTextDark,
                 activeCategory === cat && styles.categoryButtonTextActive
               ]}>
                 {cat}
@@ -56,30 +61,35 @@ const Edit_Avatar = () => {
       </View>
 
       {/* 3. Selection Menu (Bottom) */}
-      <View style={styles.menuContainer}>
-        <Text style={styles.menuTitle}>Select {activeCategory}</Text>
+      <View style={[styles.menuContainer, isDarkMode && styles.menuContainerDark]}>
+        <Text style={[styles.menuTitle, isDarkMode && styles.menuTitleDark]}>Select {activeCategory}</Text>
         
         <View style={styles.optionsGrid}>
           {/* Default "None" Option */}
           <TouchableOpacity 
-            style={[styles.optionItem, styles.selectedOption]}
+            style={[
+              styles.optionItem, 
+              isDarkMode && styles.optionItemDark,
+              styles.selectedOption,
+              isDarkMode && styles.selectedOptionDark
+            ]}
             activeOpacity={0.7}
           >
-            <Ionicons name="ban" size={32} color="#1e40af" />
-            <Text style={styles.optionLabel}>None</Text>
+            <Ionicons name="ban" size={32} color={isDarkMode ? "#38bdf8" : "#1e40af"} />
+            <Text style={[styles.optionLabel, isDarkMode && styles.optionLabelDark]}>None</Text>
           </TouchableOpacity>
 
           {/* Placeholders for future items */}
           {[1, 2, 3].map((i) => (
-            <View key={i} style={[styles.optionItem, styles.lockedOption]}>
-              <Ionicons name="lock-closed" size={24} color="#cbd5e1" />
+            <View key={i} style={[styles.optionItem, isDarkMode && styles.optionItemDark, styles.lockedOption, isDarkMode && styles.lockedOptionDark]}>
+              <Ionicons name="lock-closed" size={24} color={isDarkMode ? "#334155" : "#cbd5e1"} />
             </View>
           ))}
         </View>
       </View>
 
       {/* Save Button */}
-      <TouchableOpacity style={styles.saveBtn}
+      <TouchableOpacity style={[styles.saveBtn, isDarkMode && styles.saveBtnDark]}
       onPress={() => router.push('/profile')}
       >
         <Text style={styles.saveBtnText}>Save Changes</Text>
@@ -92,6 +102,7 @@ const Edit_Avatar = () => {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#f8fafc' },
+  safeAreaDark: { backgroundColor: '#0f172a' },
   
   // Preview Section
   previewContainer: {
@@ -100,6 +111,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'white',
   },
+  previewContainerDark: { backgroundColor: '#0f172a' },
   previewPlaceholder: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -111,6 +123,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
+  previewTextDark: { color: '#64748b' },
 
   // Category Bar
   categoryWrapper: {
@@ -119,6 +132,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: '#e2e8f0',
   },
+  categoryWrapperDark: { backgroundColor: '#1e293b', borderColor: '#334155' },
   categoryScroll: {
     paddingHorizontal: 15,
     paddingVertical: 12,
@@ -130,13 +144,16 @@ const styles = StyleSheet.create({
     marginRight: 10,
     backgroundColor: '#f1f5f9',
   },
+  categoryButtonDark: { backgroundColor: '#0f172a' },
   categoryButtonActive: {
     backgroundColor: '#3b82f6',
   },
+  categoryButtonActiveDark: { backgroundColor: '#38bdf8' },
   categoryButtonText: {
     color: '#64748b',
     fontWeight: 'bold',
   },
+  categoryButtonTextDark: { color: '#94a3b8' },
   categoryButtonTextActive: {
     color: 'white',
   },
@@ -147,6 +164,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8fafc',
     padding: 20,
   },
+  menuContainerDark: { backgroundColor: '#0f172a' },
   menuTitle: {
     fontSize: 14,
     fontWeight: 'bold',
@@ -154,6 +172,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     textTransform: 'uppercase',
   },
+  menuTitleDark: { color: '#475569' },
   optionsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -174,21 +193,25 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: 'transparent',
   },
+  optionItemDark: { backgroundColor: '#1e293b' },
   selectedOption: {
     borderColor: '#3b82f6',
     backgroundColor: '#eff6ff',
   },
+  selectedOptionDark: { borderColor: '#38bdf8', backgroundColor: 'rgba(56, 189, 248, 0.1)' },
   lockedOption: {
     backgroundColor: '#f1f5f9',
     elevation: 0,
     shadowOpacity: 0,
   },
+  lockedOptionDark: { backgroundColor: '#0f172a' },
   optionLabel: {
     fontSize: 10,
     color: '#1e40af',
     fontWeight: 'bold',
     marginTop: 4,
   },
+  optionLabelDark: { color: '#38bdf8' },
 
   // Save Button
   saveBtn: {
@@ -198,6 +221,7 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     alignItems: 'center',
   },
+  saveBtnDark: { backgroundColor: '#38bdf8' },
   saveBtnText: {
     color: 'white',
     fontWeight: 'bold',
