@@ -2,48 +2,172 @@ import { useProfile } from '@/context/ProfileContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Avatar from '../components/Avatar';
 
-const categories = ["Skin Tone", "Hats", "Shirts", "Pants"];
+const categories = ["Skin Tone", "Hats", "Shirts"];
+
+const SKIN_TONES = [
+  { name: "Blue", color: "#3b82f6", price: 0 },
+  { name: "Fair", color: "#FFDBAC", price: 0 },
+  { name: "Deep", color: "#8D5524", price: 0 },
+  { name: "Tan", color: "#F1C27D", price: 0 },
+  { name: "Rich", color: "#C68642", price: 0 },
+  { name: "White", color: "#FFFFFF", price: 20 },
+  { name: "Black", color: "#000000", price: 20 },
+  { name: "Red", color: "#ef4444", price: 20 },
+  { name: "Green", color: "#10b981", price: 20 },
+  { name: "Pink", color: "#ec4899", price: 20 },
+];
+
+const HATS = [
+  { name: "None", id: "none", icon: "ban", price: 0 },
+  { name: "Briefcase", id: "briefcase", icon: "briefcase", price: 0 },
+  { name: "Glasses", id: "glasses", icon: "glasses", price: 20 },
+  { name: "School", id: "school", icon: "school", price: 20 },
+  { name: "Medal", id: "medal", icon: "medal", price: 20 },
+  { name: "Musical", id: "musical-notes", icon: "musical-notes", price: 20 },
+];
+
+const SHIRTS = [
+  { name: "None", id: "none", icon: "ban", price: 0 },
+  { name: "Fitness", id: "fitness", icon: "fitness", price: 0 },
+  { name: "Water", id: "water", icon: "water", price: 20 },
+  { name: "Book", id: "book", icon: "book", price: 20 },
+  { name: "Flame", id: "flame", icon: "flame", price: 20 },
+  { name: "Leaf", id: "leaf", icon: "leaf", price: 20 },
+];
 
 const Edit_Avatar = () => {
   const router = useRouter();
-  const { isDarkMode } = useProfile();
+  const {
+    isDarkMode,
+    customAvatar,
+    updateCustomAvatar,
+    unlockedItems,
+    unlockItem,
+    totalPoints
+  } = useProfile();
   const [activeCategory, setActiveCategory] = useState("Skin Tone");
 
-  // This would eventually hold the state of what is equipped
-  const [selections, setSelections] = useState({
-    "Skin Tone": "none",
-    "Hats": "none",
-    "Shirts": "none",
-    "Pants": "none"
-  });
+  const handleItemPress = (item: any, type: 'skinColor' | 'hat' | 'shirt') => {
+    const itemId = type === 'skinColor' ? item.color : item.id;
+    const isUnlocked = unlockedItems.includes(itemId) || (item.price === 0);
+
+    if (isUnlocked) {
+      if (itemId === 'none') {
+        updateCustomAvatar({ [type]: undefined });
+      } else {
+        updateCustomAvatar({ [type]: itemId });
+      }
+    } else {
+      Alert.alert(
+        "Unlock Item",
+        `Would you like to unlock ${item.name} for ${item.price} points?`,
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Unlock",
+            onPress: () => {
+              const success = unlockItem(itemId, item.price);
+              if (success) {
+                updateCustomAvatar({ [type]: itemId });
+              } else {
+                Alert.alert("Insufficient Points", `You need ${item.price} points. You have ${totalPoints}.`);
+              }
+            }
+          }
+        ]
+      );
+    }
+  };
   const insets = useSafeAreaInsets();
+
+  const renderOptionGrid = () => {
+    let items: any[] = [];
+    let type: 'skinColor' | 'hat' | 'shirt' = 'skinColor';
+
+    if (activeCategory === "Skin Tone") {
+      items = SKIN_TONES;
+      type = 'skinColor';
+    } else if (activeCategory === "Hats") {
+      items = HATS;
+      type = 'hat';
+    } else if (activeCategory === "Shirts") {
+      items = SHIRTS;
+      type = 'shirt';
+    }
+
+    return items.map((item) => {
+      const itemId = type === 'skinColor' ? item.color : item.id;
+      const isLocked = !unlockedItems.includes(itemId) && item.price > 0;
+      const currentSelected = type === 'skinColor' ? customAvatar.skinColor : customAvatar[type];
+      const isSelected = currentSelected === itemId || (itemId === 'none' && !currentSelected);
+
+      return (
+        <TouchableOpacity
+          key={item.name}
+          style={[
+            styles.optionItem,
+            isDarkMode && styles.optionItemDark,
+            isSelected && styles.selectedOption,
+            isSelected && isDarkMode && styles.selectedOptionDark,
+            isLocked && styles.lockedOptionItem
+          ]}
+          activeOpacity={0.7}
+          onPress={() => handleItemPress(item, type)}
+        >
+          {isLocked ? (
+            <View style={styles.lockOverlay}>
+              <Ionicons name="lock-closed" size={14} color="white" />
+              <Text style={styles.priceTag}>{item.price}</Text>
+            </View>
+          ) : (
+            type === 'skinColor' ? (
+              <View style={[styles.colorSquare, { backgroundColor: item.color }]} />
+            ) : (
+              <Ionicons name={item.icon} size={32} color={isDarkMode ? "#38bdf8" : "#1e40af"} />
+            )
+          )}
+          <Text style={[styles.optionLabel, isDarkMode && styles.optionLabelDark]}>{item.name}</Text>
+        </TouchableOpacity>
+      );
+    });
+  };
 
   return (
     <SafeAreaView style={[styles.safeArea, isDarkMode && styles.safeAreaDark]}>
-      
+
       {/* 1. Avatar Preview Area (Top) */}
       <View style={[styles.previewContainer, isDarkMode && styles.previewContainerDark]}>
         <View style={styles.previewPlaceholder}>
-          <Ionicons name="person" size={120} color={isDarkMode ? "#38bdf8" : "#cbd5e1"} />
+          <Avatar
+            customAvatar={customAvatar}
+            size={120}
+            isDarkMode={isDarkMode}
+            // Adjust these offsets to fine-tune accessory positioning
+            hatTopOffset={-30}
+            hatLeftOffset={0}
+            shirtBottomOffset={-15}
+            shirtLeftOffset={0}
+          />
           <Text style={[styles.previewText, isDarkMode && styles.previewTextDark]}>Avatar Preview</Text>
         </View>
       </View>
 
       {/* 2. Category Navigation (Center) */}
       <View style={[styles.categoryWrapper, isDarkMode && styles.categoryWrapperDark]}>
-        <ScrollView 
-          horizontal 
+        <ScrollView
+          horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.categoryScroll}
         >
           {categories.map((cat) => (
-            <TouchableOpacity 
-              key={cat} 
+            <TouchableOpacity
+              key={cat}
               style={[
-                styles.categoryButton, 
+                styles.categoryButton,
                 isDarkMode && styles.categoryButtonDark,
                 activeCategory === cat && styles.categoryButtonActive,
                 activeCategory === cat && isDarkMode && styles.categoryButtonActiveDark
@@ -64,36 +188,19 @@ const Edit_Avatar = () => {
 
       {/* 3. Selection Menu (Bottom) */}
       <View style={[styles.menuContainer, isDarkMode && styles.menuContainerDark]}>
-        <Text style={[styles.menuTitle, isDarkMode && styles.menuTitleDark]}>Select {activeCategory}</Text>
-        
-        <View style={styles.optionsGrid}>
-          {/* Default "None" Option */}
-          <TouchableOpacity 
-            style={[
-              styles.optionItem, 
-              isDarkMode && styles.optionItemDark,
-              styles.selectedOption,
-              isDarkMode && styles.selectedOptionDark
-            ]}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="ban" size={32} color={isDarkMode ? "#38bdf8" : "#1e40af"} />
-            <Text style={[styles.optionLabel, isDarkMode && styles.optionLabelDark]}>None</Text>
-          </TouchableOpacity>
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <Text style={[styles.menuTitle, isDarkMode && styles.menuTitleDark]}>Select {activeCategory}</Text>
 
-          {/* Placeholders for future items */}
-          {[1, 2, 3].map((i) => (
-            <View key={i} style={[styles.optionItem, isDarkMode && styles.optionItemDark, styles.lockedOption, isDarkMode && styles.lockedOptionDark]}>
-              <Ionicons name="lock-closed" size={24} color={isDarkMode ? "#334155" : "#cbd5e1"} />
-            </View>
-          ))}
-        </View>
+          <View style={styles.optionsGrid}>
+            {renderOptionGrid()}
+          </View>
+        </ScrollView>
       </View>
 
       {/* Save Button */}
-      <TouchableOpacity 
+      <TouchableOpacity
         style={[
-          styles.saveBtn, 
+          styles.saveBtn,
           isDarkMode && styles.saveBtnDark,
           { marginBottom: Math.max(insets.bottom, 20) }
         ]}
@@ -109,7 +216,7 @@ const Edit_Avatar = () => {
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#f8fafc' },
   safeAreaDark: { backgroundColor: '#0f172a' },
-  
+
   // Preview Section
   previewContainer: {
     flex: 1,
@@ -121,6 +228,24 @@ const styles = StyleSheet.create({
   previewPlaceholder: {
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  avatarBase: {
+    position: 'relative',
+    width: 120,
+    height: 120,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  hatOverlay: {
+    position: 'absolute',
+    top: 5,
+    right: 25,
+    zIndex: 1,
+  },
+  shirtOverlay: {
+    position: 'absolute',
+    bottom: 25,
+    zIndex: 1,
   },
   previewText: {
     marginTop: 10,
@@ -218,6 +343,29 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   optionLabelDark: { color: '#38bdf8' },
+  colorSquare: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    marginBottom: 5,
+  },
+  lockedOptionItem: {
+    opacity: 0.8,
+  },
+  lockOverlay: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 5,
+  },
+  priceTag: {
+    color: 'white',
+    fontSize: 9,
+    fontWeight: '900',
+  },
 
   // Save Button
   saveBtn: {

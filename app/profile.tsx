@@ -4,6 +4,7 @@ import React from 'react';
 import { Alert, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { useProfile } from '../context/ProfileContext';
+import Avatar from '../components/Avatar';
 
 const Profile = () => {
   const router = useRouter();
@@ -17,7 +18,8 @@ const Profile = () => {
     challengesWon,
     addPoints,
     isDarkMode,
-    toggleDarkMode
+    toggleDarkMode,
+    customAvatar
   } = useProfile();
 
   const handleResetPoints = () => {
@@ -74,7 +76,7 @@ const Profile = () => {
         <View style={styles.avatarContainer}>
           <View style={[styles.imageWrapper, isDarkMode && styles.imageWrapperDark]}>
             <View style={styles.placeholderImage}>
-              <Ionicons name="person" size={60} color={isDarkMode ? "#38bdf8" : "#1e40af"} />
+              <Avatar customAvatar={customAvatar} size={60} isDarkMode={isDarkMode} />
             </View>
             <TouchableOpacity 
               style={[styles.editButton, isDarkMode && styles.editButtonDark]}

@@ -11,6 +11,7 @@ import { useTaskStatus } from '@/context/TaskStatusContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import Avatar from '../components/Avatar';
 
 import {
   Dimensions,
@@ -57,7 +58,7 @@ const Matchmaking = () => {
   const [matches, setMatches] = useState<any[]>([]);
   const { resetSession } = useTaskStatus();
 
-  const { currentBracket, setBracket, isDarkMode, isFriendRoyale, friendIDs } = useProfile();
+  const { currentBracket, setBracket, isDarkMode, isFriendRoyale, friendIDs, customAvatar } = useProfile();
   const hasSimulated = useRef(false);
 
   const userTotalSeconds = useMemo(() => {
@@ -188,7 +189,11 @@ const Matchmaking = () => {
             </View>
 
             <View style={[styles.playerIconCircle, isDarkMode && styles.playerIconCircleDark, player.isUser && styles.userIconCircle, player.isUser && isDarkMode && styles.userIconCircleDark]}>
-              <Ionicons name={player.icon} size={20} color={player.isUser ? '#3b82f6' : (isDarkMode ? '#94a3b8' : '#64748b')} />
+              {player.isUser ? (
+                <Avatar customAvatar={customAvatar} size={24} isDarkMode={isDarkMode} />
+              ) : (
+                <Ionicons name={player.icon} size={20} color={(isDarkMode ? '#94a3b8' : '#64748b')} />
+              )}
             </View>
 
             <View style={styles.playerNameContainer}>

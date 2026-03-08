@@ -10,6 +10,12 @@ export interface Quest {
   length: string;
 }
 
+export interface CustomAvatar {
+  skinColor: string;
+  hat?: string;
+  shirt?: string;
+}
+
 // Mock names and icons for deterministic mapping
 export const MOCK_NAMES = ['Alex', 'Jordan', 'Taylor', 'Casey', 'Morgan', 'Riley', 'Jamie', 'Skylar', 'Charlie', 'Quinn', 'Parker', 'Rowan'];
 export const MOCK_ICONS = ['flash', 'barbell', 'water', 'body', 'cafe', 'leaf', 'bicycle', 'walk', 'heart', 'star', 'trophy', 'medal'];
@@ -97,6 +103,10 @@ interface ProfileContextType {
   setIsFriendRoyale: (value: boolean) => void;
   setFriendIDs: (ids: string[]) => void;
   incrementChallengesWon: () => void;
+  customAvatar: CustomAvatar;
+  updateCustomAvatar: (attrs: Partial<CustomAvatar>) => void;
+  unlockedItems: string[];
+  unlockItem: (itemId: string, cost: number) => boolean;
 }
 
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
@@ -114,6 +124,12 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
   const [isFriendRoyale, setIsFriendRoyale] = useState(false);
   const [friendIDs, setFriendIDs] = useState<string[]>(USER_DB.slice(0, 9).map(u => u.id));
   const [challengesWon, setChallengesWon] = useState(0);
+  const [customAvatar, setCustomAvatar] = useState<CustomAvatar>({
+    skinColor: '#3b82f6' // Default to Blue
+  });
+  const [unlockedItems, setUnlockedItems] = useState<string[]>([
+    '#3b82f6', '#FFDBAC', '#8D5524', '#F1C27D', '#C68642'
+  ]);
 
   const toggleDarkMode = () => setIsDarkMode(prev => !prev);
 
@@ -132,6 +148,19 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
 
   const incrementChallengesWon = () => {
     setChallengesWon(prev => prev + 1);
+  };
+
+  const updateCustomAvatar = (attrs: Partial<CustomAvatar>) => {
+    setCustomAvatar(prev => ({ ...prev, ...attrs }));
+  };
+
+  const unlockItem = (itemId: string, cost: number) => {
+    if (totalPoints >= cost) {
+      setTotalPoints(prev => prev - cost);
+      setUnlockedItems(prev => [...prev, itemId]);
+      return true;
+    }
+    return false;
   };
 
   return (
@@ -161,7 +190,11 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
         setIsFriendRoyale,
         setFriendIDs,
         challengesWon,
-        incrementChallengesWon
+        incrementChallengesWon,
+        customAvatar,
+        updateCustomAvatar,
+        unlockedItems,
+        unlockItem
       }}
     >
       {children}

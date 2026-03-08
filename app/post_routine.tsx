@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import Avatar from '../components/Avatar';
 import React, { useEffect, useRef } from 'react';
 import { Alert, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,7 +12,7 @@ const Post_Routine = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { elapsedSeconds, formatTime, completedTaskIds, isActive } = useTaskStatus();
-  const { lastPointsGained, addPoints, incrementChallengesWon, activeQuest, currentBracket, eliminateFromBracket, setBracket, isDarkMode, isFriendRoyale, friendIDs } = useProfile();
+  const { lastPointsGained, addPoints, incrementChallengesWon, activeQuest, currentBracket, eliminateFromBracket, setBracket, isDarkMode, isFriendRoyale, friendIDs, customAvatar } = useProfile();
   const { tasks } = useTasks();
 
   const parTime = React.useMemo(() => {
@@ -159,7 +160,18 @@ const Post_Routine = () => {
                 return (
                   <View key={player.id} style={[styles.rankRow, isDarkMode && styles.rankRowDark, player.isUser && styles.userRankRow, player.isUser && isDarkMode && styles.userRankRowDark]}>
                     <Text style={[styles.rankNumber, isDarkMode && styles.rankNumberDark]}>{index + 1}</Text>
-                    <Ionicons name={player.icon as any} size={16} color={player.isUser ? (isDarkMode ? "#38bdf8" : "#3b82f6") : (isDarkMode ? "#64748b" : "#64748b")} style={{ marginHorizontal: 10 }} />
+                    {player.isUser ? (
+                      <View style={{ marginHorizontal: 10 }}>
+                        <Avatar customAvatar={customAvatar} size={20} isDarkMode={isDarkMode} />
+                      </View>
+                    ) : (
+                      <Ionicons 
+                        name={player.icon as any} 
+                        size={16} 
+                        color={(isDarkMode ? "#64748b" : "#64748b")} 
+                        style={{ marginHorizontal: 10 }} 
+                      />
+                    )}
                     <Text style={[
                       styles.rankName, 
                       isDarkMode && styles.rankNameDark,
