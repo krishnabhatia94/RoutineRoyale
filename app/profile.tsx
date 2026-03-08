@@ -1,12 +1,33 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { usePoints } from '../context/PointsContext'; // Import points context
 
 const Profile = () => {
   const router = useRouter();
+  
+  // Pull totalPoints and the reset function from context
+  // Note: Ensure you've added setTotalPoints(0) to your context!
+  const { totalPoints, addPoints } = usePoints();
 
-  const renderInfoRow = (label: string | number | bigint | boolean | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | Promise<string | number | bigint | boolean | React.ReactPortal | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | null | undefined> | null | undefined, value: string | number | bigint | boolean | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | Promise<string | number | bigint | boolean | React.ReactPortal | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | null | undefined> | null | undefined) => (
+  // Helper for resetting (using addPoints with a negative or adding a new reset function)
+  const handleResetPoints = () => {
+    Alert.alert(
+      "Reset Points",
+      "Are you sure you want to clear all your progress? This cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        // If you add a dedicated resetPoints function to your context, call it here:
+        { text: "Reset", style: "destructive", onPress: () => {
+             // For now, we'll just subtract the current total if no reset function exists
+             addPoints(-totalPoints); 
+        }}
+      ]
+    );
+  };
+
+  const renderInfoRow = (label: string, value: string | number) => (
     <View style={styles.infoRow}>
       <Text style={styles.infoLabel}>{label}</Text>
       <Text style={styles.infoValue}>{value}</Text>
@@ -48,13 +69,19 @@ const Profile = () => {
 
         {/* Stats Card */}
         <View style={styles.card}>
-          {renderInfoRow("Total Points", "12,450")}
+          {/* Now using the live totalPoints from context */}
+          {renderInfoRow("Total Points", totalPoints.toLocaleString())}
           {renderInfoRow("Current Streak", "12 Days")}
           {renderInfoRow("Challenges Won", "8")}
           {renderInfoRow("Global Rank", "#42")}
         </View>
 
-        {/* Logout / Settings Button */}
+        {/* --- RESET POINTS BUTTON --- */}
+        <TouchableOpacity style={styles.resetBtn} onPress={handleResetPoints}>
+          <Text style={styles.resetBtnText}>Reset Points</Text>
+        </TouchableOpacity>
+
+        {/* Logout Button */}
         <TouchableOpacity style={styles.logoutBtn}>
           <Text style={styles.logoutBtnText}>Logout</Text>
         </TouchableOpacity>
@@ -135,6 +162,17 @@ const styles = StyleSheet.create({
   },
   line: { flex: 1, height: 1, backgroundColor: '#e2e8f0' },
   dividerText: { marginHorizontal: 15, color: '#94a3b8', fontWeight: 'bold', letterSpacing: 2, fontSize: 12 },
+
+  // Reset Button (Red box, white text)
+  resetBtn: {
+    backgroundColor: '#ef4444',
+    padding: 16,
+    borderRadius: 16,
+    width: '100%',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  resetBtnText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
 
   // Logout Button
   logoutBtn: {

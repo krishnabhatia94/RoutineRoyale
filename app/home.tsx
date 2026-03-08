@@ -1,3 +1,4 @@
+import { useTaskStatus } from '@/context/TaskStatusContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
@@ -10,6 +11,8 @@ const Home = () => {
   const [status, setStatus] = useState("Clock In");
   const [isClockedIn, setIsClockedIn] = useState(false);
 
+  const { resetSession } = useTaskStatus();
+
   // Mock data for announcements
   const announcements = [
     { id: 1, title: 'Season 1 Begins!', body: 'First set of challenges and rewards are now live.', icon: 'trophy' },
@@ -17,11 +20,9 @@ const Home = () => {
   ];
 
   const handleClockIn = () => {
-    setStatus("Processing...");
-    setTimeout(() => {
-      setStatus("Clocked In!");
-      router.push('/routine_active');
-    }, 1200);
+    // setStatus("Loading...");
+    resetSession();
+    router.push('/routine_active');
   };
 
   return (
@@ -30,7 +31,7 @@ const Home = () => {
         
         {/* Portal Card */}
         <View style={styles.portalCard}>
-          <Text style={styles.portalHeadline}>Ready to start your day?</Text>
+          <Text style={styles.portalHeadline}>Ready to start your routine?</Text>
           
           <TouchableOpacity 
             style={[styles.clockBtn, isClockedIn && styles.clockBtnSuccess]} 
@@ -47,6 +48,24 @@ const Home = () => {
             </Text>
           </View>
         </View>
+
+        {/* --- NEW SECTION START --- */}
+        <View style={styles.dividerContainer}>
+          <View style={styles.line} />
+          <Text style={styles.dividerText}>YOUR ROUTINE</Text>
+          <View style={styles.line} />
+        </View>
+
+        <TouchableOpacity 
+          style={styles.taskEditBtn}
+          onPress={() => router.push('/task_list')}
+        >
+          <View style={styles.taskEditIconBg}>
+            <Ionicons name="list" size={20} color="white" />
+          </View>
+          <Text style={styles.taskEditBtnText}>Edit Task List</Text>
+          <Ionicons name="chevron-forward" size={18} color="#94a3b8" />
+        </TouchableOpacity>
 
         {/* Divider Section */}
         <View style={styles.dividerContainer}>
@@ -115,6 +134,36 @@ const styles = StyleSheet.create({
     fontWeight: 'bold', 
     letterSpacing: 1.5, 
     fontSize: 11 
+  },
+
+  // New Task Edit Button Styles
+  taskEditBtn: {
+    flexDirection: 'row',
+    backgroundColor: '#2b4fc7',
+    width: '100%',
+    padding: 16,
+    borderRadius: 20,
+    alignItems: 'center',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+  },
+  taskEditIconBg: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: '#3b82f6', // Matches your theme's primary blue
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 15,
+  },
+  taskEditBtnText: {
+    flex: 1,
+    fontWeight: 'bold',
+    color: 'white',
+    fontSize: 16,
   },
 
   // Announcement Card Styles
