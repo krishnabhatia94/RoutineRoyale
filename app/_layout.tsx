@@ -102,7 +102,13 @@ function TabNavigator() {
       />
 
       <Tabs.Screen name="index" options={{ href: null }} />
-      <Tabs.Screen name="edit_avatar" options={{ href: null }} />
+      <Tabs.Screen 
+        name="edit_avatar" 
+        options={{ 
+          href: null,
+          tabBarStyle: { display: 'none' }
+        }} 
+      />
       <Tabs.Screen
         name="routine_active"
         options={{
@@ -111,7 +117,13 @@ function TabNavigator() {
           headerShown: true
         }}
       />
-      <Tabs.Screen name="task_list" options={{ href: null }} />
+      <Tabs.Screen 
+        name="task_list" 
+        options={{ 
+          href: null,
+          tabBarStyle: { display: 'none' }
+        }} 
+      />
       <Tabs.Screen name="post_routine" options={{ href: null }} />
       <Tabs.Screen name="matchmaking" options={{ href: null }} />
     </Tabs>

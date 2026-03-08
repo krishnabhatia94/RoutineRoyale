@@ -91,6 +91,12 @@ interface ProfileContextType {
   eliminateFromBracket: (id: string) => void;
   isDarkMode: boolean;
   toggleDarkMode: () => void;
+  friendIDs: string[];
+  isFriendRoyale: boolean;
+  challengesWon: number;
+  setIsFriendRoyale: (value: boolean) => void;
+  setFriendIDs: (ids: string[]) => void;
+  incrementChallengesWon: () => void;
 }
 
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
@@ -105,6 +111,9 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
   const [lastPointsGained, setLastPointsGained] = useState(0);
   const [currentBracket, setCurrentBracket] = useState<string[]>([]);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isFriendRoyale, setIsFriendRoyale] = useState(false);
+  const [friendIDs, setFriendIDs] = useState<string[]>(USER_DB.slice(0, 9).map(u => u.id));
+  const [challengesWon, setChallengesWon] = useState(0);
 
   const toggleDarkMode = () => setIsDarkMode(prev => !prev);
 
@@ -119,6 +128,10 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
 
   const eliminateFromBracket = (id: string) => {
     setCurrentBracket(prev => prev.filter(compId => compId !== id));
+  };
+
+  const incrementChallengesWon = () => {
+    setChallengesWon(prev => prev + 1);
   };
 
   return (
@@ -142,7 +155,13 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
         setBracket,
         eliminateFromBracket,
         isDarkMode,
-        toggleDarkMode
+        toggleDarkMode,
+        friendIDs,
+        isFriendRoyale,
+        setIsFriendRoyale,
+        setFriendIDs,
+        challengesWon,
+        incrementChallengesWon
       }}
     >
       {children}

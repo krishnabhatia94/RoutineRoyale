@@ -14,7 +14,7 @@ const Home = () => {
 
   const { resetSession } = useTaskStatus();
   const { tasks } = useTasks();
-  const { currentBracket, totalPoints, isDarkMode } = useProfile();
+  const { currentBracket, totalPoints, isDarkMode, setIsFriendRoyale } = useProfile();
 
   const playersLeft = currentBracket.length === 0 ? 10 : currentBracket.length + 1;
 
@@ -33,6 +33,7 @@ const Home = () => {
       return;
     }
     // setStatus("Loading...");
+    setIsFriendRoyale(false);
     router.push('/matchmaking');
   };
 

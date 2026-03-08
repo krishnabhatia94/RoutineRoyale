@@ -1,21 +1,53 @@
-import { useProfile } from '@/context/ProfileContext';
+import { useProfile, getCompetitorFromDB, getDeterministicIndex } from '@/context/ProfileContext';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const Friends = () => {
-  const { isDarkMode } = useProfile();
-  // Mock data for the leaderboard
-  const friends = [
-    { id: 1, name: 'Alex Rivers', points: 2450, status: 'Completed Morning Yoga', rank: 1 },
-    { id: 2, name: 'Sam Chen', points: 2100, status: 'Just finished a workout!', rank: 2 },
-    { id: 3, name: 'Jordan Smith', points: 1850, status: 'Just clocked in', rank: 3 },
-  ];
+  const router = useRouter();
+  const { isDarkMode, setIsFriendRoyale, friendIDs } = useProfile();
+
+  // Populate dynamic friends list from friendIDs
+  const dynamicFriends = friendIDs.map((id, index) => {
+    const competitor = getCompetitorFromDB(id);
+    // Generate some deterministic mock points
+    const points = 1000 + (getDeterministicIndex(id, 20) * 100);
+    return {
+      id: id,
+      name: competitor.name,
+      points: points,
+      status: index === 0 ? 'Completed Morning Yoga' : 'Just finished a workout!',
+      rank: index + 1 // Sort them by index for now
+    };
+  }).sort((a, b) => b.points - a.points).map((f, i) => ({ ...f, rank: i + 1 }));
+
+  const handleStartFriendsRoyale = () => {
+    setIsFriendRoyale(true);
+    router.push('/matchmaking');
+  };
 
   return (
     <SafeAreaView style={[styles.safeArea, isDarkMode && styles.safeAreaDark]}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         
+        {/* Friends Royale Portal Card */}
+        <View style={[styles.portalCard, isDarkMode && styles.portalCardDark]}>
+          <Text style={styles.portalHeadline}>Ready for a Friends Royale?</Text>
+          <TouchableOpacity
+            style={styles.clockBtn}
+            onPress={handleStartFriendsRoyale}
+          >
+            <Ionicons name="people" size={24} color="white" />
+            <Text style={styles.btnText}>Start Friends Royale</Text>
+          </TouchableOpacity>
+          <View style={[styles.statusBadge, isDarkMode && styles.statusBadgeDark]}>
+            <Text style={[styles.statusText, isDarkMode && styles.statusTextDark]}>
+              Compete with your top {friendIDs.length} friends!
+            </Text>
+          </View>
+        </View>
+
         {/* Weekly Leaderboard Section */}
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, isDarkMode && styles.sectionTitleDark]}>Weekly Leaderboard</Text>
@@ -25,7 +57,7 @@ const Friends = () => {
         </View>
 
         <View style={[styles.leaderboardCard, isDarkMode && styles.leaderboardCardDark]}>
-          {friends.map((friend) => (
+          {dynamicFriends.map((friend) => (
             <View key={friend.id} style={[styles.friendRow, isDarkMode && styles.friendRowDark]}>
               <View style={styles.rankBadge}>
                 <Text style={[styles.rankText, isDarkMode && styles.rankTextDark]}>{friend.rank}</Text>
@@ -38,7 +70,7 @@ const Friends = () => {
                 <Text style={[styles.friendStatus, isDarkMode && styles.friendStatusDark]}>{friend.status}</Text>
               </View>
               <View style={styles.pointsContainer}>
-                <Text style={[styles.pointsText, isDarkMode && styles.pointsTextDark]}>{friend.points}</Text>
+                <Text style={[styles.pointsText, isDarkMode && styles.pointsTextDark]}>{friend.points.toLocaleString()}</Text>
                 <Text style={[styles.pointsLabel, isDarkMode && styles.pointsLabelDark]}>pts</Text>
               </View>
             </View>
@@ -168,6 +200,31 @@ const styles = StyleSheet.create({
   },
   activityText: { marginLeft: 12, color: '#1e40af', fontSize: 14, flex: 1 },
   activityTextDark: { color: '#38bdf8' },
+  
+  // Portal Card Styles (from Home.tsx)
+  portalCard: {
+    width: '100%',
+    backgroundColor: '#1e40af',
+    borderRadius: 24,
+    padding: 30,
+    alignItems: 'center',
+    marginBottom: 30,
+  },
+  portalCardDark: { backgroundColor: '#1e293b' },
+  portalHeadline: { color: 'white', fontSize: 20, marginBottom: 30, fontWeight: '600', textAlign: 'center' },
+  clockBtn: {
+    backgroundColor: '#3b82f6',
+    flexDirection: 'row',
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 50,
+    alignItems: 'center'
+  },
+  btnText: { color: 'white', fontWeight: 'bold', marginLeft: 10 },
+  statusBadge: { marginTop: 30, backgroundColor: 'rgba(255,255,255,0.1)', padding: 10, borderRadius: 10 },
+  statusBadgeDark: { backgroundColor: 'rgba(56, 189, 248, 0.1)' },
+  statusText: { color: 'rgba(255,255,255,0.8)', fontSize: 12 },
+  statusTextDark: { color: '#38bdf8' },
 });
 
 export default Friends;

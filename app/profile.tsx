@@ -14,6 +14,7 @@ const Profile = () => {
     userId, 
     activeQuest, 
     totalPoints,
+    challengesWon,
     addPoints,
     isDarkMode,
     toggleDarkMode
@@ -105,7 +106,7 @@ const Profile = () => {
         <View style={[styles.card, isDarkMode && styles.cardDark]}>
           {/* Now using the live totalPoints from context */}
           {renderInfoRow("Total Points", totalPoints.toLocaleString())}
-          {renderInfoRow("Challenges Won", "8")}
+          {renderInfoRow("Challenges Won", challengesWon.toLocaleString())}
           {renderInfoRow("Global Rank", "#42")}
         </View>
 

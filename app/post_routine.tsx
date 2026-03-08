@@ -11,7 +11,7 @@ const Post_Routine = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { elapsedSeconds, formatTime, completedTaskIds, isActive } = useTaskStatus();
-  const { lastPointsGained, addPoints, activeQuest, currentBracket, eliminateFromBracket, setBracket, isDarkMode } = useProfile();
+  const { lastPointsGained, addPoints, incrementChallengesWon, activeQuest, currentBracket, eliminateFromBracket, setBracket, isDarkMode, isFriendRoyale, friendIDs } = useProfile();
   const { tasks } = useTasks();
 
   const parTime = React.useMemo(() => {
@@ -21,8 +21,10 @@ const Post_Routine = () => {
   const leaderboard = React.useMemo(() => {
     // Return empty if we don't have enough data to generate yet
     if (!isActive && elapsedSeconds > 0) {
-      // Use currentBracket from context
-      const competitors = currentBracket.map((id) => {
+      // Use friendIDs if in Friends Royale mode, otherwise currentBracket
+      const activeBracketIds = isFriendRoyale ? friendIDs : currentBracket;
+      
+      const competitors = activeBracketIds.map((id) => {
         const competitor = getCompetitorFromDB(id);
         
         // Deterministic variance based on ID - +/- 108 seconds centered around user
@@ -48,7 +50,7 @@ const Post_Routine = () => {
     
     // Fallback if routine hasn't finished
     return [{ id: 'user-0', name: 'You', icon: 'person', time: elapsedSeconds, isUser: true }];
-  }, [elapsedSeconds, isActive, currentBracket, parTime]);
+  }, [elapsedSeconds, isActive, currentBracket, parTime, isFriendRoyale, friendIDs]);
 
   const userRank = leaderboard.findIndex(p => p.isUser) + 1;
 
@@ -75,9 +77,12 @@ const Post_Routine = () => {
     if (!pointsAwarded.current && userRank > 0 && !isActive && elapsedSeconds > 0) {
       const totalGained = placementPoints + questPoints;
       addPoints(totalGained);
+      if (userRank === 1 && !isFriendRoyale) {
+        incrementChallengesWon();
+      }
       pointsAwarded.current = true;
     }
-  }, [userRank, isActive, elapsedSeconds, placementPoints, questPoints, addPoints]);
+  }, [userRank, isActive, elapsedSeconds, placementPoints, questPoints, addPoints, incrementChallengesWon]);
 
   return (
     <SafeAreaView style={[styles.safeArea, isDarkMode && styles.safeAreaDark]}>
@@ -148,7 +153,8 @@ const Post_Routine = () => {
                 // 1. It's the last row
                 // 2. There's more than one person (user isn't the only survivor)
                 // 3. The person being crossed out is NOT the user
-                const shouldStrike = isLast && leaderboard.length > 1 && !player.isUser;
+                // 4. NOT in Friends Royale mode
+                const shouldStrike = !isFriendRoyale && isLast && leaderboard.length > 1 && !player.isUser;
                 
                 return (
                   <View key={player.id} style={[styles.rankRow, isDarkMode && styles.rankRowDark, player.isUser && styles.userRankRow, player.isUser && isDarkMode && styles.userRankRowDark]}>
@@ -175,6 +181,11 @@ const Post_Routine = () => {
             <TouchableOpacity
               style={[styles.homeBtn, isDarkMode && styles.homeBtnDark]}
               onPress={() => {
+                if (isFriendRoyale) {
+                  router.replace('/friends');
+                  return;
+                }
+
                 const lastPlayer = leaderboard[leaderboard.length - 1];
                 
                 if (lastPlayer.isUser && leaderboard.length > 1) {
@@ -199,7 +210,7 @@ const Post_Routine = () => {
                 }
               }}
             >
-              <Text style={styles.homeBtnText}>Back to Home</Text>
+              <Text style={styles.homeBtnText}>{isFriendRoyale ? "Back to Friends" : "Back to Home"}</Text>
             </TouchableOpacity>
           </View>
 

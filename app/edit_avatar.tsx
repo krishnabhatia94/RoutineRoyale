@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const categories = ["Skin Tone", "Hats", "Shirts", "Pants"];
 
@@ -18,6 +19,7 @@ const Edit_Avatar = () => {
     "Shirts": "none",
     "Pants": "none"
   });
+  const insets = useSafeAreaInsets();
 
   return (
     <SafeAreaView style={[styles.safeArea, isDarkMode && styles.safeAreaDark]}>
@@ -89,11 +91,15 @@ const Edit_Avatar = () => {
       </View>
 
       {/* Save Button */}
-      <TouchableOpacity style={[styles.saveBtn, isDarkMode && styles.saveBtnDark]}
-      onPress={() => router.push('/profile')}
+      <TouchableOpacity 
+        style={[
+          styles.saveBtn, 
+          isDarkMode && styles.saveBtnDark,
+          { marginBottom: Math.max(insets.bottom, 20) }
+        ]}
+        onPress={() => router.push('/profile')}
       >
         <Text style={styles.saveBtnText}>Save Changes</Text>
-        
       </TouchableOpacity>
 
     </SafeAreaView>
@@ -216,7 +222,8 @@ const styles = StyleSheet.create({
   // Save Button
   saveBtn: {
     backgroundColor: '#1e40af',
-    margin: 20,
+    marginHorizontal: 20,
+    marginTop: 10,
     padding: 18,
     borderRadius: 15,
     alignItems: 'center',

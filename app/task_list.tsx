@@ -17,6 +17,7 @@ import {
   UIManager,
   View
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DraggableFlatList, {
   RenderItemParams
 } from 'react-native-draggable-flatlist';
@@ -456,6 +457,8 @@ const Task_List = () => {
     );
   }, [expandedId, tasks, isDarkMode]);
 
+  const insets = useSafeAreaInsets();
+
   return (
     <SafeAreaView style={[styles.safeArea, isDarkMode && styles.safeAreaDark]}>
       <DraggableFlatList
@@ -468,7 +471,7 @@ const Task_List = () => {
         }}
         keyExtractor={(item: any) => item.id.toString()}
         renderItem={renderItem}
-        contentContainerStyle={styles.scrollContainer}
+        contentContainerStyle={[styles.scrollContainer, { paddingBottom: Math.max(insets.bottom, 50) }]}
         activationDistance={20}
         ListHeaderComponent={
           <>
@@ -495,7 +498,7 @@ const Task_List = () => {
           </>
         }
         ListFooterComponent={
-          <>
+          <View style={{ marginBottom: 20 }}>
             <TouchableOpacity 
               style={[styles.addBtn, isDarkMode && styles.addBtnDark]} 
               onPress={addTask}
@@ -511,13 +514,13 @@ const Task_List = () => {
               <Ionicons name="trash-outline" size={20} color="#ef4444" />
               <Text style={[styles.addBtnText, styles.clearBtnText]}>Clear All Tasks In This Routine</Text>
             </TouchableOpacity>
-          </>
+          </View>
         }
         showsVerticalScrollIndicator={false}
       />
 
       {/* Gemini AI Floating Bubble & Input */}
-      <View style={styles.aiContainer}>
+      <View style={[styles.aiContainer, { bottom: Math.max(insets.bottom, 20) }]}>
         {isAiModalVisible && (
           <View style={[styles.aiOverlay, isDarkMode && styles.aiOverlayDark]}>
             <TextInput

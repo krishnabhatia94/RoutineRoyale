@@ -57,7 +57,7 @@ const Matchmaking = () => {
   const [matches, setMatches] = useState<any[]>([]);
   const { resetSession } = useTaskStatus();
 
-  const { currentBracket, setBracket, isDarkMode } = useProfile();
+  const { currentBracket, setBracket, isDarkMode, isFriendRoyale, friendIDs } = useProfile();
   const hasSimulated = useRef(false);
 
   const userTotalSeconds = useMemo(() => {
@@ -88,10 +88,10 @@ const Matchmaking = () => {
 
       // Simulate matchmaking
       const timer = setTimeout(() => {
-        let activeBracketIds = [...currentBracket];
+        let activeBracketIds = isFriendRoyale ? [...friendIDs] : [...currentBracket];
 
-        // If bracket is empty, generate 9 new random IDs from DB
-        if (activeBracketIds.length === 0) {
+        // If bracket is empty and NOT a friends royale, generate 9 new random IDs from DB
+        if (!isFriendRoyale && activeBracketIds.length === 0) {
           const newIds = getRandomCompetitors(9);
           setBracket(newIds);
           activeBracketIds = newIds;
@@ -113,7 +113,7 @@ const Matchmaking = () => {
       }, 4000);
 
       return () => clearTimeout(timer);
-    }, [userTotalSeconds, currentBracket])
+    }, [userTotalSeconds, currentBracket, isFriendRoyale, friendIDs])
   );
 
   const pulseStyle = useAnimatedStyle(() => ({
@@ -140,11 +140,15 @@ const Matchmaking = () => {
         </View>
 
         <View style={styles.textContainer}>
-          <Text style={styles.searchingTitle}>Assembling Your Royale...</Text>
+          <Text style={styles.searchingTitle}>
+            {isFriendRoyale ? "Loading Friend's Profiles..." : "Assembling Your Royale..."}
+          </Text>
           <Text style={styles.searchingSubtitle}>
-            {currentBracket.length === 0 || currentBracket.length === 9 
-              ? "Finding 9 survivors remaining in your bracket" 
-              : "Loading competitor profiles..."}
+            {isFriendRoyale 
+              ? "Preparing your friend-only bracket"
+              : (currentBracket.length === 0 || currentBracket.length === 9 
+                ? "Finding 9 survivors remaining in your bracket" 
+                : "Loading competitor profiles...")}
           </Text>
           <Text style={styles.timeTag}>Your Total: {formatSeconds(userTotalSeconds)}</Text>
         </View>
